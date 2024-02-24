@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:16.0
+    restart: unless-stopped
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - bibliomania
+    volumes:
+      - ./_volumes/postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./images/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - bibliomania
+
+  app:
+    build: ./images/app
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    depends_on:
+      - api
+    networks:
+      - bibliomania
+
+networks:
+  bibliomania:
+
+volumes:
+  postgres_data:
