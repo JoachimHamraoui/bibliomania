@@ -5,11 +5,12 @@
 exports.up = function(knex) {
     return knex.schema.createTable("book", function (table) {
         table.increments("id").primary();
-        table.string("bookTitle").notNullable();
-        table.string("bookDescription").notNullable();
-        table.string("bookCover").notNullable();
-        table.integer('world').unsigned();
-        table.foreign('world').references('world.id');
+        table.string("title").notNullable();
+        table.string("author").notNullable();
+        table.string("description").notNullable();
+        table.string("cover").notNullable();
+        table.integer('group').unsigned();
+        table.foreign('group').references('group.id');
         table.timestamps(true, true);
       });
 };

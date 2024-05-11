@@ -6,13 +6,15 @@
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "dark",
+    "scheme": "bibliomania",
     "plugins": [
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
-      ]
+      ],
+      "expo-router"
     ],
     "extra": {
       "apiKey": "$REACT_APP_API_KEY",
@@ -39,7 +41,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": ["expo-router"]
+    }
   }
 }

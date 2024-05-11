@@ -3,11 +3,12 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable("question", function (table) {
+    return knex.schema.createTable("vote", function (table) {
         table.increments("id").primary();
-        table.integer('question_about').unsigned();
-        table.foreign('question_about').references('book.id');
-        table.string("question", 500).notNullable();
+
+        table.integer('group_id').unsigned();
+        table.foreign('group_id').references('group.id');
+
         table.timestamps(true, true);
       });
 };
@@ -17,5 +18,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('question');
+    return knex.schema.dropTable('vote');
 };

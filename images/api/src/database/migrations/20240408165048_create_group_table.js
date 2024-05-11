@@ -3,15 +3,14 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable("world", function (table) {
+    return knex.schema.createTable("group", function (table) {
         table.increments("id").primary();
-        table.string("worldName").notNullable().unique();
-        table.string("worldImage").notNullable();
-        table.string("worldDescription");
+        table.string("name").notNullable().unique();
+        table.string("image").notNullable();
+        table.string("description").notNullable();
         table.integer('created_by').unsigned();
         table.foreign('created_by').references('user.id');
-        table.boolean('privrate').defaultTo(false);
-        table.string("code", 10);
+        table.string("code", 10).notNullable().unique();
         table.timestamps(true, true);
       });
 };

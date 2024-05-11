@@ -11,9 +11,12 @@ exports.up = function (knex) {
     table.integer("book_id").unsigned();
     table.foreign("book_id").references("book.id");
 
-    table.integer("world_id").unsigned();
-    table.foreign("world_id").references("world.id");
+    table.integer("group_id").unsigned();
+    table.foreign("group_id").references("group.id");
 
+    table.boolean("liked").defaultTo(false);
+    table.boolean("read").defaultTo(false);
+     
     table.timestamps(true, true);
   });
 };

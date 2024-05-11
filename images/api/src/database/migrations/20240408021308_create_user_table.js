@@ -9,9 +9,11 @@ exports.up = function (knex) {
     table.string("email").notNullable().unique();
     table.string("password").notNullable();
     table.string("profile_picture").notNullable();
+    table.string("bio", 255);
     table.integer("level").notNullable().defaultTo(0);
+    
     table.integer('rank').unsigned();
-    table.foreign('rank').references('rank.id').notNullable();
+    table.foreign('rank').references('rank.id');
 
     table.timestamps(true, true);
   });
