@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable,  } from 'react-native';
-import { Link } from 'expo-router';
+import { View, TextInput, Button, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 
 const RegistrationForm = () => {
@@ -20,7 +19,6 @@ const RegistrationForm = () => {
 
   if (!fontsLoaded) {
     return null; // or a loading indicator
-    console.log('fonts not loaded');
   }
 
   const handleSubmit = async () => {
@@ -51,7 +49,7 @@ const RegistrationForm = () => {
 
       console.log('User Data:', userData);
 
-      const response = await fetch('http://192.168.1.10:3000/user', {
+      const response = await fetch('http://10.0.2.2:3000/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,45 +83,38 @@ const RegistrationForm = () => {
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.content}>
-          <Text style={[styles.title, styles.bold]}>Sign up</Text>
-          <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={text => {
-            setConfirmPassword(text);
-            setPasswordMatch(text === password);
-          }}
-          secureTextEntry={true}
-        />
-        {passwordMatch ? (
-          <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords match</Text>
-        ) : (
-          <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords do not match</Text>
-        )}
-        <Pressable style={styles.formBtn} onPress={handleSubmit}>
-          <Text style={styles.formTitle}>Sign Up</Text>
-        </Pressable>
-        <Text style={styles.option}>Already have an account? <Link href="/login" style={styles.link}>Log in</Link></Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
+          <Text style={styles.title}>Registration</Text>
         </View>
       </ScrollView>
     </ImageBackground>
@@ -133,9 +124,14 @@ const RegistrationForm = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    // justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
+    // width: '100%',
+    // flex: 1,
+    // justifyContent: 'center',
+    // backgroundColor: 'green',
     width: '100%',
     marginTop: 80,
     alignItems: 'center',
@@ -143,6 +139,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '90%',
+    // backgroundColor: 'red',
     marginTop: 40,
     paddingBottom: 20,
   },
@@ -157,46 +154,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 20,
     color: '#0B326C',
   },
   bold: {
-    fontFamily: 'Montserrat_700Bold',
-  },
-  input: {
-    width: '100%',
-    paddingLeft: 12,
-    paddingVertical: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#FAF9F6',
-    borderRadius: 5,
-    backgroundColor: '#FAF9F6',
-    fontSize: 18,
-    fontFamily: 'Montserrat_400Regular'
-  },
-  formBtn: {
-    width: '100%',
-    paddingLeft: 10,
-    paddingVertical: 14,
-    backgroundColor: '#2465C7',
-    borderRadius: 5,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  formTitle: {
-    color: '#FAF9F6',
-    fontSize: 18,
-    fontFamily: 'Montserrat_400Regular',
-  },
-  option: {
-    fontFamily: 'Montserrat_400Regular',
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 8,
-  },
-  link: {
-    color: '#2465C7',
     fontFamily: 'Montserrat_700Bold',
   }
 });

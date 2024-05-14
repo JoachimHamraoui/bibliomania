@@ -130,6 +130,36 @@ app.post("/group", authenticateToken, async (req, res) => {
     });
   }
 });
+// Route to get all users (authenticated with JWT token)
+app.get("/loggedInUser", authenticateToken, async (req, res) => {
+  const userId = req.user.userId; // Extract user ID from JWT token payload
+
+  try {
+    // Fetch all users from the database
+    const users = await db("user").select("*");
+
+    // Find the data for the authenticated user
+    const authenticatedUser = users.find(user => user.id === userId);
+
+    if (!authenticatedUser) {
+      return res.status(404).send({
+        message: "User not found",
+      });
+    }
+
+    res.status(200).send({
+      allUsers: users,
+      authenticatedUserData: authenticatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      error: "Something went wrong",
+      value: error,
+    });
+  }
+});
+
 
 // Define a route for image upload
 app.post("/upload", async (req, res) => {

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable,  } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable } from 'react-native';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const RegistrationForm = () => {
+
+
+const LoginForm = () => {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordMatch, setPasswordMatch] = useState(false);
 
   console.log("index.js loaded");
 
@@ -24,52 +24,42 @@ const RegistrationForm = () => {
   }
 
   const handleSubmit = async () => {
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    if (!email.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
     try {
-      const userData = {
+      const loginData = {
         username,
-        email,
         password,
-        profile_picture: 'https://pbs.twimg.com/profile_images/1766781196560715776/wkw0Xiiy_400x400.jpg',
-        level: 1,
-        rank: 1,
       };
 
-      console.log('User Data:', userData);
+      console.log('Login Data:', loginData);
 
-      const response = await fetch('http://192.168.1.10:3000/user', {
+      const response = await fetch('http://192.168.1.10:3000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(loginData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to register user');
+        throw new Error('Invalid Credentials');
       }
 
-      setUsername('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setPasswordMatch(false);
+      const { token } = await response.json();
+      
+      // Store token securely
+      await AsyncStorage.setItem('token', token);
+      console.log('Token:', token);
 
-      Alert.alert('Success', 'Registration successful');
+      setUsername('');
+      setPassword('');
+
+      // Alert.alert('Success', 'Registration successful');
+      router.navigate('/test');
     } catch (error) {
       console.error('Error registering user:', error);
       Alert.alert('Error', 'An error occurred while registering. Please try again later.');
@@ -78,14 +68,14 @@ const RegistrationForm = () => {
 
   return (
     <ImageBackground
-      source={require('../assets/app-background-img.jpg')}
+      source={require('../../assets/app-background-img.jpg')}
       style={styles.background}>
       <View style={styles.header}>
-        <Image source={require('../assets/header-img.png')}/>
+        <Image source={require('../../assets/header-img.png')}/>
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.content}>
-          <Text style={[styles.title, styles.bold]}>Sign up</Text>
+          <Text style={[styles.title, styles.bold]}>Login</Text>
           <TextInput
           style={styles.input}
           placeholder="Username"
@@ -94,36 +84,16 @@ const RegistrationForm = () => {
         />
         <TextInput
           style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={text => {
-            setConfirmPassword(text);
-            setPasswordMatch(text === password);
-          }}
-          secureTextEntry={true}
-        />
-        {passwordMatch ? (
-          <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords match</Text>
-        ) : (
-          <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords do not match</Text>
-        )}
         <Pressable style={styles.formBtn} onPress={handleSubmit}>
           <Text style={styles.formTitle}>Sign Up</Text>
         </Pressable>
-        <Text style={styles.option}>Already have an account? <Link href="/login" style={styles.link}>Log in</Link></Text>
+
+        <Text style={styles.option}>Don't have an account? <Link href="/" style={styles.link}>Sign up</Link></Text>
         </View>
       </ScrollView>
     </ImageBackground>
@@ -202,5 +172,5 @@ const styles = StyleSheet.create({
 });
 
 
-export default RegistrationForm;
+export default LoginForm;
 
