@@ -130,6 +130,103 @@ app.post("/group", authenticateToken, async (req, res) => {
     });
   }
 });
+
+// Route to add a book to a group
+app.post("/group/:groupId/book", authenticateToken, async (req, res) => {
+  const { title, author, description, cover } = req.body;
+  const { groupId } = req.params;
+
+  try {
+    // Check if the group exists
+    const group = await db('group').where({ id: groupId }).first();
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    // Insert the book into the database
+    const newBook = await db('book').insert({
+      title,
+      author,
+      description,
+      cover,
+      group: groupId, // Foreign key to the group
+    }).returning('*'); // Returning the inserted book
+
+    res.status(201).send({
+      data: newBook,
+      message: "Book added to group successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      error: "Something went wrong",
+      value: error,
+    });
+  }
+});
+
+// Route to add a question for a specific book
+app.post("/book/:bookId/question", authenticateToken, async (req, res) => {
+  const { question } = req.body;
+  const { bookId } = req.params;
+
+  try {
+    // Check if the book exists
+    const book = await db('book').where({ id: bookId }).first();
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Insert the question into the database
+    const newQuestion = await db('question').insert({
+      question_about: bookId, // Foreign key to the book
+      question,
+    }).returning('*'); // Returning the inserted question
+
+    res.status(201).send({
+      data: newQuestion,
+      message: "Question added to book successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      error: "Something went wrong",
+      value: error,
+    });
+  }
+});
+
+// Route to add an option to a specific question
+app.post("/question/:questionId/option", authenticateToken, async (req, res) => {
+  const { option } = req.body;
+  const { questionId } = req.params;
+
+  try {
+    // Check if the question exists
+    const question = await db('question').where({ id: questionId }).first();
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    // Insert the option into the database
+    const newOption = await db('question_option').insert({
+      question_id: questionId, // Foreign key to the question
+      option,
+    }).returning('*'); // Returning the inserted option
+
+    res.status(201).send({
+      data: newOption,
+      message: "Option added to question successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      error: "Something went wrong",
+      value: error,
+    });
+  }
+});
+
 // Route to get all users (authenticated with JWT token)
 app.get("/loggedInUser", authenticateToken, async (req, res) => {
   const userId = req.user.userId; // Extract user ID from JWT token payload
