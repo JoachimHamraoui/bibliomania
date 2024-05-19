@@ -3,13 +3,16 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable("vote", function (table) {
+    return knex.schema.createTable("group_book_history", function (table) {
         table.increments("id").primary();
-
+       
         table.integer('group_id').unsigned();
         table.foreign('group_id').references('group.id');
 
-        table.boolean("ended").defaultTo(false);
+        table.integer('book_id').unsigned();
+        table.foreign('book_id').references('book.id');
+
+        table.boolean("completed").defaultTo(false);
 
         table.timestamps(true, true);
       });
@@ -20,5 +23,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('vote');
+    return knex.schema.dropTable('group_book_history');
 };

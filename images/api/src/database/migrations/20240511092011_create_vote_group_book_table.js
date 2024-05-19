@@ -3,17 +3,6 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-  
-};
-
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- *//**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.up = function(knex) {
     return knex.schema.createTable("vote_group_book", function (table) {
         table.increments("id").primary();
 
@@ -26,8 +15,8 @@ exports.up = function(knex) {
         table.integer('book_id').unsigned();
         table.foreign('book_id').references('book.id');
 
-        table.integer('vote').unsigned();
-        table.foreign('vote').references('vote.id');
+        table.integer('vote_id').unsigned();
+        table.foreign('vote_id').references('vote.id');
 
         table.timestamps(true, true);
       });
@@ -38,7 +27,7 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('vote');
+    return knex.schema.dropTable('vote_group_book');
 };
 
 exports.down = function(knex) {
