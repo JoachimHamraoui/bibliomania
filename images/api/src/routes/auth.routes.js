@@ -102,8 +102,10 @@ function authenticateToken(req, res, next) {
     const userId = req.user.userId; // Extract user ID from JWT token payload
   
     try {
-      // Fetch all users from the database
-      const users = await db("user").select("*");
+      // Fetch all users and their ranks from the database
+      const users = await db("user")
+        .join("rank", "user.rank", "=", "rank.id")
+        .select("user.id", "user.username", "user.email", "user.profile_picture", "rank.rank");
   
       // Find the data for the authenticated user
       const authenticatedUser = users.find(user => user.id === userId);
