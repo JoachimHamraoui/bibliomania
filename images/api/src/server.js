@@ -16,10 +16,12 @@ app.get("/", (req, res) => {
 const Auth = require("./routes/auth.routes");
 const Get = require("./routes/get.route");
 const Post = require("./routes/post.route");
+const Patch = require("./routes/patch.route");
 
 app.use("/", Auth);
 app.use("/", Get);
 app.use("/", Post);
+app.use("/", Patch);
 
 
 // Define a route for image upload

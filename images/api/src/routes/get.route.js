@@ -145,51 +145,52 @@ function authenticateToken(req, res, next) {
 
   router.get("/book/:book_id/questions", async (req, res) => {
     const { book_id } = req.params; // Extract book ID from the request parameters
-  
+
     try {
-      // Fetch all questions related to the specified book
-      const questions = await db('question')
-        .where('question_about', book_id)
-        .select('id as question_id', 'question');
-  
-      // Fetch all options for each question
-      for (const question of questions) {
-        question.options = await db('question_option')
-          .where('question_id', question.question_id)
-          .select('id as option_id', 'option');
-  
-        // Calculate the total count of answers for the current question
-        const totalAnswersResult = await db('user_answer')
-          .where('question_id', question.question_id)
-          .count('chosen_option_id as total')
-          .first();
-        const totalAnswers = totalAnswersResult.total;
-  
-        // Calculate the percentage of answers for each option
-        for (const option of question.options) {
-          const optionAnswersResult = await db('user_answer')
-            .where('question_id', question.question_id)
-            .where('chosen_option_id', option.option_id)
-            .count('chosen_option_id as count')
-            .first();
-          const optionAnswers = optionAnswersResult.count;
-  
-          option.percentage = totalAnswers ? Math.round((optionAnswers * 100) / totalAnswers) : 0;
+        // Fetch all questions related to the specified book
+        const questions = await db('question')
+            .where('question_about', book_id)
+            .select('id as question_id', 'question');
+
+        // Fetch all options for each question
+        for (const question of questions) {
+            question.options = await db('question_option')
+                .where('question_id', question.question_id)
+                .select('id as option_id', 'option');
+
+            // Calculate the total count of answers for the current question
+            const totalAnswersResult = await db('user_answer')
+                .where('question_id', question.question_id)
+                .count('chosen_option_id as total')
+                .first();
+            const totalAnswers = totalAnswersResult.total;
+
+            // Calculate the percentage of answers for each option
+            for (const option of question.options) {
+                const optionAnswersResult = await db('user_answer')
+                    .where('question_id', question.question_id)
+                    .where('chosen_option_id', option.option_id)
+                    .count('chosen_option_id as count')
+                    .first();
+                const optionAnswers = optionAnswersResult.count;
+
+                option.percentage = totalAnswers ? Math.round((optionAnswers * 100) / totalAnswers) : 0;
+            }
         }
-      }
-  
-      res.status(200).send({
-        data: questions,
-        message: "Questions retrieved successfully",
-      });
+
+        res.status(200).send({
+            book_id: book_id, // Include the book_id in the response
+            data: questions,
+            message: "Questions retrieved successfully",
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).send({
-        error: "Something went wrong",
-        value: error,
-      });
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
     }
-  });
+});
 
   router.get("/group/:group_id/book/:book_id/likes", authenticateToken, async (req, res) => {
     const { group_id, book_id } = req.params;
