@@ -3,6 +3,7 @@ import { Link, router } from 'expo-router';
 import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable } from 'react-native';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Logo from '../../assets/header-img-svg.svg';
 
 
 
@@ -57,9 +58,9 @@ const LoginForm = () => {
 
       setUsername('');
       setPassword('');
-
+ 
       // Alert.alert('Success', 'Registration successful');
-      router.navigate('/test');
+      router.navigate('/home');
     } catch (error) {
       console.error('Error registering user:', error);
       Alert.alert('Error', 'An error occurred while registering. Please try again later.');
@@ -71,7 +72,7 @@ const LoginForm = () => {
       source={require('../../assets/app-background-img.jpg')}
       style={styles.background}>
       <View style={styles.header}>
-        <Image source={require('../../assets/header-img.png')}/>
+        <Image source={require('../../assets/header-img.png')} />
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.content}>
@@ -93,7 +94,7 @@ const LoginForm = () => {
           <Text style={styles.formTitle}>Sign Up</Text>
         </Pressable>
 
-        <Text style={styles.option}>Don't have an account? <Link href="/" style={styles.link}>Sign up</Link></Text>
+        <Text style={styles.option}>Don't have an account? <Link href="/signup" style={styles.link}>Sign up</Link></Text>
         </View>
       </ScrollView>
     </ImageBackground>
