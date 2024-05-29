@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, StatusBar } from 'react-native';
 import { router } from 'expo-router';
 import { Svg, Path } from 'react-native-svg';
-import { getToken, fetchAuthenticatedUser } from '../../components/authService'; // Import the functions
+import { getToken, fetchAuthenticatedUser } from '../../components/authService';
+import Header from '../../components/header';
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -15,7 +16,7 @@ const Home = () => {
         const userData = await fetchAuthenticatedUser(token);
         setUser(userData);
         console.log(userData);
-  
+
         if (userData.role === 'teacher') {
           fetchGroups(token, 'teacher');
         } else if (userData.role === 'student') {
@@ -23,18 +24,18 @@ const Home = () => {
         }
       }
     };
-  
+
     getUserData();
-  
+
     const interval = setInterval(() => {
       getUserData();
     }, 30000); // Fetch data every minute (adjust as needed)
-  
+
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
   const fetchGroups = async (token, role) => {
-    const url = role === 'teacher' ? 'http://192.168.1.10:3000/teacher/created-groups' : 'http://192.168.1.10:3000/student/groups';
+    const url = role === 'teacher' ? 'http://192.168.1.10:3000/teacher/created-groups' : 'http://192.168.0.221:3000/student/groups';
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -60,23 +61,10 @@ const Home = () => {
     <ImageBackground
       source={require('../../assets/app-background-img.jpg')}
       style={styles.background}>
+      <StatusBar barStyle="light-content" backgroundColor="#2899E0" translucent={true} />
       {user ? (
         <>
-          <View style={styles.header}>
-            <View style={styles.headerImageContainer}>
-              <Image source={require('../../assets/header-img.png')} style={styles.headerImage} />
-            </View>
-            {user.profile_picture && (
-              <TouchableOpacity
-                onPress={() => router.navigate('/profile')}
-                style={styles.profilePictureContainer}>
-                <Image
-                  source={{ uri: user.profile_picture }}
-                  style={styles.profilePicture}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+          <Header user={user} />
           <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.content}>
               {groups.length > 0 ? (
@@ -84,18 +72,20 @@ const Home = () => {
                   {user.role === "teacher" ? (
                     <TouchableOpacity onPress={() => router.navigate('/create-group')} style={styles.createGroupButtonContainer}>
                       <Svg style={styles.createGroupIcon} width="32" height="32" viewBox="0 0 24 24">
-                        <Path fillRule="evenodd" clipRule="evenodd" d="M12 2C12.5523 2 13 2.44772 13 3V11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H13V21C13 21.5523 12.5523 22 12 22C11.4477 22 11 21.5523 11 21V13H3C2.44772 13 2 12.5523 2 12C2 11.4477 2.44772 11 3 11H11V3C11 2.44772 11.4477 2 12 2Z" fill="white"/>
+                        <Path fillRule="evenodd" clipRule="evenodd" d="M12 2C12.5523 2 13 2.44772 13 3V11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H13V21C13 21.5523 12.5523 22 12 22C11.4477 22 11 21.5523 11 21V13H3C2.44772 13 2 12.5523 2 12C2 11.4477 2.44772 11 3 11H11V3C11 2.44772 11.4477 2 12 2Z" fill="white" />
                       </Svg>
                       <Text style={styles.createGroupButton}>Create Group</Text>
                     </TouchableOpacity>
-                  ) : <TouchableOpacity onPress={() => router.navigate('/join-group')} style={styles.createGroupButtonContainer}>
+                  ) : (
+                    <TouchableOpacity onPress={() => router.navigate('/join-group')} style={styles.createGroupButtonContainer}>
                       <Svg style={styles.createGroupIcon} width="32" height="32" viewBox="0 0 24 24">
-                        <Path fillRule="evenodd" clipRule="evenodd" d="M12 2C12.5523 2 13 2.44772 13 3V11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H13V21C13 21.5523 12.5523 22 12 22C11.4477 22 11 21.5523 11 21V13H3C2.44772 13 2 12.5523 2 12C2 11.4477 2.44772 11 3 11H11V3C11 2.44772 11.4477 2 12 2Z" fill="white"/>
+                        <Path fillRule="evenodd" clipRule="evenodd" d="M12 2C12.5523 2 13 2.44772 13 3V11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H13V21C13 21.5523 12.5523 22 12 22C11.4477 22 11 21.5523 11 21V13H3C2.44772 13 2 12.5523 2 12C2 11.4477 2.44772 11 3 11H11V3C11 2.44772 11.4477 2 12 2Z" fill="white" />
                       </Svg>
                       <Text style={styles.createGroupButton}>Join Group</Text>
-                    </TouchableOpacity>}
+                    </TouchableOpacity>
+                  )}
                   {groups.map((group, index) => (
-                    <TouchableOpacity key={index} onPress={() => router.navigate(`/group/${group.id}`)} style={styles.groupContainer}>
+                    <TouchableOpacity key={index} onPress={() => router.navigate(`group/${group.id}`)} style={styles.groupContainer}>
                       <Image source={{ uri: group.image }} style={styles.groupImage} />
                       <View>
                         <Text style={styles.groupTitle}>{group.name}</Text>
@@ -109,14 +99,14 @@ const Home = () => {
                 <View style={styles.noGroupsContainer}>
                   <Image source={require('../../assets/book-world.png')} style={styles.noGroupsImage} />
                   {user.role === "teacher" ? (
-                   <>
-                   <Text style={styles.noGroupsText}>No groups created yet</Text>
-                    <TouchableOpacity onPress={() => router.navigate('/create-group')} style={styles.createGroupButtonContainerSmall}><Text style={styles.createGroupButtonSmall}>Create Group</Text></TouchableOpacity>
-                   </>
+                    <>
+                      <Text style={styles.noGroupsText}>No groups created yet</Text>
+                      <TouchableOpacity onPress={() => router.navigate('/create-group')} style={styles.createGroupButtonContainerSmall}><Text style={styles.createGroupButtonSmall}>Create Group</Text></TouchableOpacity>
+                    </>
                   ) : (
                     <>
-                    <Text style={styles.noGroupsText}>No groups joined yet</Text>
-                    <TouchableOpacity onPress={() => router.navigate('/join-group')} style={styles.createGroupButtonContainerSmall}><Text style={styles.createGroupButtonSmall}>Join Group</Text></TouchableOpacity>
+                      <Text style={styles.noGroupsText}>No groups joined yet</Text>
+                      <TouchableOpacity onPress={() => router.navigate('/join-group')} style={styles.createGroupButtonContainerSmall}><Text style={styles.createGroupButtonSmall}>Join Group</Text></TouchableOpacity>
                     </>
                   )}
                 </View>
@@ -138,45 +128,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    width: '100%',
-    marginTop: 80,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2899E0',
-    paddingHorizontal: 20,
-    position: 'relative',
-  },
-  headerImageContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerImage: {
-    resizeMode: 'contain',
-  },
-  profilePictureContainer: {
-    position: 'absolute',
-    right: 20,
-  },
-  profilePicture: {
-    width: 35,
-    height: 35,
-    borderRadius: 6,
-  },
   content: {
     width: '90%',
-    marginTop: 40,
+    marginTop: 20,
     paddingBottom: 20,
   },
   background: {
+    flex: 1,
     width: '100%',
     height: '100%',
-    position: 'absolute',
-    top: -24,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    resizeMode: 'cover',
+    justifyContent: 'center',
   },
   createGroupButtonContainer: {
     width: '100%',
@@ -189,7 +151,7 @@ const styles = StyleSheet.create({
   },
   createGroupButton: {
     fontSize: 16,
-    color: '#DAF9F6',
+    color: '#FAF9F6',
     fontFamily: 'Montserrat_700Bold',
     marginVertical: 10,
   },

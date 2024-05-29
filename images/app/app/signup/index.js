@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable, StatusBar } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Link } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
@@ -21,8 +21,8 @@ const RegistrationForm = () => {
   });
 
   if (!fontsLoaded) {
-    return null; // or a loading indicator
     console.log('fonts not loaded');
+    return null; // or a loading indicator
   }
 
   const handleSubmit = async () => {
@@ -81,67 +81,70 @@ const RegistrationForm = () => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/app-background-img.jpg')}
-      style={styles.background}>
-      <View style={styles.header}>
-        <Image source={require('../../assets/header-img.png')} style={styles.headerImage}/>
-      </View>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.content}>
-          <Text style={[styles.title, styles.bold]}>Sign up</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={text => {
-              setConfirmPassword(text);
-              setPasswordMatch(text === password);
-            }}
-            secureTextEntry={true}
-          />
-          {passwordMatch ? (
-            <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords match</Text>
-          ) : (
-            <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords do not match</Text>
-          )}
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={role}
-              style={styles.picker}
-              onValueChange={(itemValue, itemIndex) => setRole(itemValue)}
-              dropdownIconColor="#0B326C"
-            >
-              <Picker.Item label="Student" value="student" />
-              <Picker.Item label="Teacher" value="teacher" />
-            </Picker>
-          </View>
-          <Pressable style={styles.formBtn} onPress={handleSubmit}>
-            <Text style={styles.formTitle}>Sign Up</Text>
-          </Pressable>
-          <Text style={styles.option}>Already have an account? <Link href="/login" style={styles.link}>Log in</Link></Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#2899E0" translucent={true} />
+      <ImageBackground
+        source={require('../../assets/app-background-img.jpg')}
+        style={styles.background}>
+        <View style={styles.header}>
+          <Image source={require('../../assets/header-img.png')} />
         </View>
-      </ScrollView>
-    </ImageBackground>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.content}>
+            <Text style={[styles.title, styles.bold]}>Sign up</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={true}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChangeText={text => {
+                setConfirmPassword(text);
+                setPasswordMatch(text === password);
+              }}
+              secureTextEntry={true}
+            />
+            {passwordMatch ? (
+              <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords match</Text>
+            ) : (
+              <Text style={{ color: 'white', marginBottom: 10, fontSize: 12 }}>Passwords do not match</Text>
+            )}
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={role}
+                style={styles.picker}
+                onValueChange={(itemValue, itemIndex) => setRole(itemValue)}
+                dropdownIconColor="#0B326C"
+              >
+                <Picker.Item label="Student" value="student" />
+                <Picker.Item label="Teacher" value="teacher" />
+              </Picker>
+            </View>
+            <Pressable style={styles.formBtn} onPress={handleSubmit}>
+              <Text style={styles.formTitle}>Sign Up</Text>
+            </Pressable>
+            <Text style={styles.option}>Already have an account? <Link href="/login" style={styles.link}>Log in</Link></Text>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </>
   );
 };
 
@@ -150,25 +153,34 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    width: '100%',
-    marginTop: 80,
-    alignItems: 'center',
-    backgroundColor: '#2899E0',
-  },
   content: {
     width: '90%',
-    marginTop: 40,
+    marginTop: 20,
     paddingBottom: 20,
   },
+  header: {
+    width: '100%',
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    position: 'relative',
+    paddingVertical: 20,
+  },
+  headerImageContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerImage: {
+    resizeMode: 'contain',
+  },
   background: {
+    flex: 1,
     width: '100%',
     height: '100%',
-    position: 'absolute',
-    top: -24,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    resizeMode: 'cover',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,

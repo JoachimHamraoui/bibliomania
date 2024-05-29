@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
-import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable } from 'react-native';
+import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, Image, Pressable, StatusBar } from 'react-native';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Logo from '../../assets/header-img-svg.svg';
-
-
+import Header from '../../components/header'; // Assuming you have a Header component
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -20,8 +18,8 @@ const LoginForm = () => {
   });
 
   if (!fontsLoaded) {
-    return null; // or a loading indicator
     console.log('fonts not loaded');
+    return null; // or a loading indicator
   }
 
   const handleSubmit = async () => {
@@ -68,36 +66,39 @@ const LoginForm = () => {
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/app-background-img.jpg')}
-      style={styles.background}>
-      <View style={styles.header}>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#2899E0" translucent={true} />
+      <ImageBackground
+        source={require('../../assets/app-background-img.jpg')}
+        style={styles.background}>
+         <View style={styles.header}>
         <Image source={require('../../assets/header-img.png')} />
       </View>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.content}>
-          <Text style={[styles.title, styles.bold]}>Login</Text>
-          <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-        />
-        <Pressable style={styles.formBtn} onPress={handleSubmit}>
-          <Text style={styles.formTitle}>Sign Up</Text>
-        </Pressable>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.content}>
+            <Text style={[styles.title, styles.bold]}>Login</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={true}
+            />
+            <Pressable style={styles.formBtn} onPress={handleSubmit}>
+              <Text style={styles.formTitle}>Log in</Text>
+            </Pressable>
 
-        <Text style={styles.option}>Don't have an account? <Link href="/signup" style={styles.link}>Sign up</Link></Text>
-        </View>
-      </ScrollView>
-    </ImageBackground>
+            <Text style={styles.option}>Don't have an account? <Link href="/signup" style={styles.link}>Sign up</Link></Text>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </>
   );
 };
 
@@ -106,25 +107,35 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
-  header: {
-    width: '100%',
-    marginTop: 80,
-    alignItems: 'center',
-    backgroundColor: '#2899E0',
-  },
   content: {
     width: '90%',
-    marginTop: 40,
+    marginTop: 20,
     paddingBottom: 20,
   },
+  header: {
+    width: '100%',
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // backgroundColor: '#2899E0',
+    paddingHorizontal: 20,
+    position: 'relative',
+    paddingVertical: 20,
+  },
+  headerImageContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerImage: {
+    resizeMode: 'contain',
+  },
   background: {
+    flex: 1,
     width: '100%',
     height: '100%',
-    position: 'absolute',
-    top: -24,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    resizeMode: 'cover',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
@@ -172,6 +183,4 @@ const styles = StyleSheet.create({
   }
 });
 
-
 export default LoginForm;
-
