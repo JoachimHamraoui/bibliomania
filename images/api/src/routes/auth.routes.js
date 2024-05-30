@@ -69,7 +69,7 @@ function authenticateToken(req, res, next) {
   
   // Route to add a user
   router.post("/user", async (req, res) => {
-    const { username, email, password, profile_picture, level, rank } = req.body;
+    const { username, email, password, profile_picture, level, rank, role } = req.body;
   
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,6 +82,7 @@ function authenticateToken(req, res, next) {
         profile_picture,
         level,
         rank,
+        role
       });
   
       res.status(201).send({
@@ -105,7 +106,7 @@ function authenticateToken(req, res, next) {
       // Fetch all users and their ranks from the database
       const users = await db("user")
         .join("rank", "user.rank", "=", "rank.id")
-        .select("user.id", "user.username", "user.email", "user.profile_picture", "rank.rank");
+        .select("user.id", "user.username", "user.email", "user.profile_picture", "rank.rank", "user.role", "user.level");
   
       // Find the data for the authenticated user
       const authenticatedUser = users.find(user => user.id === userId);

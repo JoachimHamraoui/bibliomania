@@ -13,7 +13,9 @@ exports.up = function (knex) {
     table.integer("level").notNullable().defaultTo(0);
     
     table.integer('rank').unsigned();
-    table.foreign('rank').references('rank.id');
+    table.foreign('rank').references('rank.id');µµ
+
+    table.string("role", 255).notNullable();
 
     table.timestamps(true, true);
   });

@@ -32,70 +32,145 @@ function authenticateToken(req, res, next) {
 
   router.get("/student/groups", authenticateToken, async (req, res) => {
     const user_id = req.user.userId; // Extract user ID from JWT token payload
-  
-    try {
-      // Query to find all groups where the user is a member
-      const userGroups = await db('user_group')
-        .join('group', 'user_group.group_id', '=', 'group.id')
-        .where('user_group.user_id', user_id)
-        .select('group.*');
-  
-      res.status(200).send({
-        data: userGroups,
-        message: "Groups retrieved successfully",
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send({
-        error: "Something went wrong",
-        value: error,
-      });
-    }
-  });
 
-  router.get("/teacher/created-groups", authenticateToken, async (req, res) => {
-    const user_id = req.user.userId; // Extract user ID from JWT token payload
-  
     try {
+        // Query to find all groups where the user is a member
+        const userGroups = await db('user_group')
+            .join('group', 'user_group.group_id', '=', 'group.id')
+            .join('user', 'group.created_by', '=', 'user.id')
+            .where('user_group.user_id', user_id)
+            .select('group.*', 'user.username as creator_username');
+
+        res.status(200).send({
+            data: userGroups,
+            message: "Groups retrieved successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
+    }
+});
+
+router.get("/teacher/created-groups", authenticateToken, async (req, res) => {
+  const user_id = req.user.userId; // Extract user ID from JWT token payload
+
+  try {
       // Query to find all groups where created_by matches the authenticated user's ID
       const createdGroups = await db('group')
-        .where('created_by', user_id)
-        .select('*');
-  
+          .join('user', 'group.created_by', '=', 'user.id')
+          .where('group.created_by', user_id)
+          .select('group.*', 'user.username as creator_username');
+
       res.status(200).send({
-        data: createdGroups,
-        message: "Created groups retrieved successfully",
+          data: createdGroups,
+          message: "Created groups retrieved successfully",
       });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).send({
-        error: "Something went wrong",
-        value: error,
+          error: "Something went wrong",
+          value: error,
       });
-    }
-  });
+  }
+});
 
-  router.get("/group/:group_id/book_history", authenticateToken, async (req, res) => {
-    const { group_id } = req.params; // Extract group ID from the request parameters
-  
-    try {
+router.get("/group/:group_id", authenticateToken, async (req, res) => {
+  const { group_id } = req.params; // Extract group ID from the request parameters
+
+  try {
+      // Query to find the group info by group ID
+      const groupInfo = await db('group')
+          .join('user', 'group.created_by', '=', 'user.id')
+          .where('group.id', group_id)
+          .select('group.*', 'user.username as creator_username')
+          .first();
+
+      if (!groupInfo) {
+          return res.status(404).send({
+              message: "Group not found",
+          });
+      }
+
+      res.status(200).send({
+          data: groupInfo,
+          message: "Group info retrieved successfully",
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({
+          error: "Something went wrong",
+          value: error,
+      });
+  }
+});
+
+router.get("/group/:group_id/book_history", authenticateToken, async (req, res) => {
+  const { group_id } = req.params; // Extract group ID from the request parameters
+
+  try {
       // Query to find all books where the group_id matches the provided group ID
       const books = await db('group_book_history')
-        .where('group_id', group_id)
-        .select('*');
-  
+          .join('book', 'group_book_history.book_id', '=', 'book.id')
+          .where('group_book_history.group_id', group_id)
+          .select(
+              'book.id as book_id',
+              'book.title',
+              'book.cover',
+              'book.author',
+              'book.description',
+              'group_book_history.completed'
+          );
+
+      // If no books found, return an empty array
+      if (!books.length) {
+          return res.status(200).send({
+              data: [],
+              message: "No books found for the specified group",
+          });
+      }
+
+      // Add counts for likes, reads, and comments for each book
+      for (const book of books) {
+          const [likeCount, readCount, commentCount] = await Promise.all([
+              db('user_book')
+                  .where('book_id', book.book_id)
+                  .andWhere('group_id', group_id)
+                  .andWhere('liked', true)
+                  .count('id as count')
+                  .first(),
+              db('user_book')
+                  .where('book_id', book.book_id)
+                  .andWhere('group_id', group_id)
+                  .andWhere('read', true)
+                  .count('id as count')
+                  .first(),
+              db('book_comments')
+                  .where('book_id', book.book_id)
+                  .andWhere('group_id', group_id)
+                  .count('id as count')
+                  .first()
+          ]);
+
+          book.likes = likeCount.count;
+          book.reads = readCount.count;
+          book.comments = commentCount.count;
+      }
+
       res.status(200).send({
-        data: books,
-        message: "Books retrieved successfully",
+          data: books,
+          message: "Books retrieved successfully",
       });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).send({
-        error: "Something went wrong",
-        value: error,
+          error: "Something went wrong",
+          value: error,
       });
-    }
-  });
+  }
+});
 
   router.get("/group/:group_id/books", authenticateToken, async (req, res) => {
     const { group_id } = req.params; // Extract group ID from the request parameters
@@ -128,7 +203,7 @@ function authenticateToken(req, res, next) {
         .join('user', 'user_group.user_id', '=', 'user.id')
         .join('rank', 'user.rank', '=', 'rank.id')
         .where('user_group.group_id', group_id)
-        .select('user.id', 'user.username', 'user.email', 'user.profile_picture', 'rank.rank');
+        .select('user.id', 'user.username', 'user.email', 'user.profile_picture', 'rank.rank', 'rank.color');
   
       res.status(200).send({
         data: users,
@@ -424,98 +499,113 @@ router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => 
 });
 
 router.get("/group/:group_id/ongoing-vote", authenticateToken, async (req, res) => {
-    const { group_id } = req.params;
+  const { group_id } = req.params;
 
-    try {
-        // Fetch the ongoing vote for the group
-        const ongoingVote = await db('vote')
-            .where('group_id', group_id)
-            .andWhere('ended', false)
-            .orderBy('created_at', 'desc')
-            .first();
+  try {
+      // Fetch the ongoing vote for the group
+      const ongoingVote = await db('vote')
+          .where('group_id', group_id)
+          .andWhere('ended', false)
+          .orderBy('created_at', 'desc')
+          .first();
 
-        if (!ongoingVote) {
-            return res.status(404).send({
-                message: "No ongoing votes found for the group",
-            });
-        }
+      if (!ongoingVote) {
+          return res.status(404).send({
+              message: "No ongoing votes found for the group",
+          });
+      }
 
-        const vote_id = ongoingVote.id;
+      const vote_id = ongoingVote.id;
 
-        // Fetch the books involved in the ongoing vote
-        const voteGroupBooks = await db('vote_group_book')
-            .where('vote_id', vote_id)
-            .select('book_id');
+      // Fetch the books involved in the ongoing vote
+      const voteGroupBooks = await db('vote_group_book')
+          .where('vote_id', vote_id)
+          .select('book_id');
 
-        if (voteGroupBooks.length === 0) {
-            return res.status(404).send({
-                message: "No books found for the ongoing vote",
-            });
-        }
+      if (voteGroupBooks.length === 0) {
+          return res.status(404).send({
+              message: "No books found for the ongoing vote",
+          });
+      }
 
-        const bookIds = voteGroupBooks.map(vgb => vgb.book_id);
+      const bookIds = voteGroupBooks.map(vgb => vgb.book_id);
 
-        // Fetch the votes for each book
-        const bookVotes = await db('vote_group_book')
-            .whereIn('book_id', bookIds)
-            .andWhere('vote_id', vote_id)
-            .groupBy('book_id')
-            .select('book_id', db.raw('COUNT(user_id) as votes'))
-            .orderBy('votes', 'desc');
+      // Fetch the votes for each book
+      const bookVotes = await db('vote_group_book')
+          .whereIn('book_id', bookIds)
+          .andWhere('vote_id', vote_id)
+          .groupBy('book_id')
+          .select('book_id', db.raw('COUNT(user_id) as votes'))
+          .orderBy('votes', 'desc');
 
-        // Fetch the users who voted for each book
-        const userVotes = await db('vote_group_book')
-            .whereIn('book_id', bookIds)
-            .andWhere('vote_id', vote_id)
-            .select('book_id', 'user_id');
+      // Fetch the users who voted for each book
+      const userVotes = await db('vote_group_book')
+          .whereIn('book_id', bookIds)
+          .andWhere('vote_id', vote_id)
+          .select('book_id', 'user_id');
 
-        const userIds = userVotes.map(uv => uv.user_id);
-        const users = await db('user')
-            .whereIn('id', userIds)
-            .select('id', 'username', 'profile_picture');
+      const userIds = userVotes.map(uv => uv.user_id);
+      const users = await db('user')
+          .whereIn('id', userIds)
+          .select('id', 'username', 'profile_picture');
 
-        // Create a map of book IDs to users who voted for them
-        const bookUsersMap = {};
-        bookVotes.forEach(bookVote => {
-            bookUsersMap[bookVote.book_id] = {
-                book_id: bookVote.book_id,
-                votes: bookVote.votes,
-                users: []
-            };
-        });
+      // Create a map of book IDs to users who voted for them
+      const bookUsersMap = {};
+      bookVotes.forEach(bookVote => {
+          bookUsersMap[bookVote.book_id] = {
+              book_id: bookVote.book_id,
+              votes: bookVote.votes,
+              users: []
+          };
+      });
 
-        userVotes.forEach(userVote => {
-            const user = users.find(u => u.id === userVote.user_id);
-            if (user) {
-                bookUsersMap[userVote.book_id].users.push({
-                    username: user.username,
-                    profile_picture: user.profile_picture
-                });
-            }
-        });
+      userVotes.forEach(userVote => {
+          const user = users.find(u => u.id === userVote.user_id);
+          if (user) {
+              bookUsersMap[userVote.book_id].users.push({
+                  username: user.username,
+                  profile_picture: user.profile_picture
+              });
+          }
+      });
 
-        const booksWithUsers = Object.values(bookUsersMap);
+      // Fetch the details of the books
+      const books = await db('book')
+          .whereIn('id', bookIds)
+          .select('id', 'title', 'author', 'cover');
 
-        // Get the book with the most votes
-        const mostVotedBook = bookVotes[0].book_id;
+      books.forEach(book => {
+          if (bookUsersMap[book.id]) {
+              bookUsersMap[book.id].title = book.title;
+              bookUsersMap[book.id].author = book.author;
+              bookUsersMap[book.id].cover = book.cover;
+          }
+      });
 
-        res.status(200).send({
-            ongoingVote: {
-                id: ongoingVote.id,
-                group_id: ongoingVote.group_id,
-                completed: ongoingVote.completed,
-                books: booksWithUsers,
-                mostVotedBook
-            },
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send({
-            error: "Something went wrong",
-            value: error,
-        });
-    }
+      const booksWithUsers = Object.values(bookUsersMap);
+
+      // Get the book with the most votes
+      const mostVotedBook = bookVotes.length ? bookVotes[0].book_id : null;
+
+      res.status(200).send({
+          ongoingVote: {
+              vote_id: ongoingVote.id,
+              group_id: ongoingVote.group_id,
+              completed: ongoingVote.ended,
+              books: booksWithUsers,
+              mostVotedBook
+          },
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({
+          error: "Something went wrong",
+          value: error,
+      });
+  }
 });
+
+
   
 router.get("/group/:group_id/remaining-books", authenticateToken, async (req, res) => {
     const { group_id } = req.params;
@@ -571,7 +661,8 @@ router.get("/user/:user_id", authenticateToken, async (req, res) => {
         // Include the rank details in the user data
         const userData = {
             ...user,
-            rank: rank.rank, // Assuming 'rank' is the column name in the 'rank' table
+            rank: rank.rank,
+            color: rank.color 
         };
 
         res.status(200).send({
@@ -585,5 +676,34 @@ router.get("/user/:user_id", authenticateToken, async (req, res) => {
         });
     }
 });
+
+router.get("/group/find/:code", authenticateToken, async (req, res) => {
+  const { code } = req.params; // Extract group code from the URL parameters
+
+  try {
+      // Fetch the group with the specified code
+      const group = await db('group')
+          .where('code', code)
+          .first();
+
+      if (!group) {
+          return res.status(404).send({
+              message: "Group not found",
+          });
+      }
+
+      res.status(200).send({
+          data: group,
+          message: "Group retrieved successfully",
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({
+          error: "Something went wrong",
+          value: error,
+      });
+  }
+});
+
 
 module.exports = router;

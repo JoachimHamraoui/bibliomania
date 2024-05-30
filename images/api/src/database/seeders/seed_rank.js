@@ -10,43 +10,43 @@ exports.seed = async function(knex) {
       return knex('rank').insert([
         {
           "rank": "Novice",
-          "color": "#ffcc00"
+          "color": "#ffdd55"
         },
         {
           "rank": "Apprentice",
-          "color": "#ff9933"
+          "color": "#ffaa66"
         },
         {
           "rank": "Amateur",
-          "color": "#ff6600"
+          "color": "#ff8844"
         },
         {
           "rank": "Intermediate",
-          "color": "#ff3300"
+          "color": "#ff6655"
         },
         {
           "rank": "Skilled",
-          "color": "#ff0000"
+          "color": "#ff5555"
         },
         {
           "rank": "Proficient",
-          "color": "#cc0000"
+          "color": "#ff4444"
         },
         {
           "rank": "Experienced",
-          "color": "#990000"
+          "color": "#ff3333"
         },
         {
           "rank": "Advanced",
-          "color": "#660000"
+          "color": "#ff2222"
         },
         {
           "rank": "Expert",
-          "color": "#330000"
+          "color": "#ff1111"
         },
         {
           "rank": "Master",
-          "color": "#000000"
+          "color": "#ff0000"
         }
       ]);
     };

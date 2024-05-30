@@ -35,7 +35,7 @@ const Home = () => {
   }, []);
 
   const fetchGroups = async (token, role) => {
-    const url = role === 'teacher' ? 'http://192.168.1.10:3000/teacher/created-groups' : 'http://192.168.0.221:3000/student/groups';
+    const url = role === 'teacher' ? 'http://192.168.1.10:3000/teacher/created-groups' : 'http://192.168.1.10:3000/student/groups';
     try {
       const response = await fetch(url, {
         method: 'GET',

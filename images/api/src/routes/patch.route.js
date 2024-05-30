@@ -208,4 +208,32 @@ router.patch("/update-read", authenticateToken, async (req, res) => {
     }
 });
 
+router.patch("/vote/:vote_id/end", authenticateToken, async (req, res) => {
+    const { vote_id } = req.params;
+
+    try {
+        // Update the 'ended' column to true for the specified vote ID
+        const updateResult = await db('vote')
+            .where('id', vote_id)
+            .update({ ended: true });
+
+        if (updateResult === 0) {
+            return res.status(404).send({
+                message: "Vote not found",
+            });
+        }
+
+        res.status(200).send({
+            message: "Vote ended successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
+    }
+});
+
+
 module.exports = router;
