@@ -1,27 +1,51 @@
 {
   "expo": {
-    "name": "app",
+    "name": "Bibliomania",
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/adaptive-icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "bibliomania",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bibliomania to access your camera",
+          "microphonePermission": "Allow Bibliomania to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
+    "extra": {
+      "apiKey": "$REACT_APP_API_KEY",
+      "authDomain": "$REACT_APP_AUTH_DOMAIN",
+      "databaseURL": "$REACT_APP_DATABASE_URL",
+      "storageBucket": "$REACT_APP_STORAGE_BUCKET",
+      "messagingSenderId": "$REACT_APP_MESSAGING_SENDER_ID",
+      "appId": "$REACT_APP_APP_ID"
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2899E0"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#2899E0"
+      },
+      "permissions": ["CAMERA"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
