@@ -3,6 +3,7 @@ import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, 
 import { Picker } from '@react-native-picker/picker';
 import { Link } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
+import {EXPO_IP_ADDR} from "@env";
 
 const RegistrationForm = () => {
   const [username, setUsername] = useState('');
@@ -54,7 +55,7 @@ const RegistrationForm = () => {
 
       console.log('User Data:', userData);
 
-      const response = await fetch('http://192.168.1.10:3000/user', {
+      const response = await fetch(`${EXPO_IP_ADDR}/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

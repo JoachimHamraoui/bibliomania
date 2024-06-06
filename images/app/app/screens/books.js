@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import {EXPO_IP_ADDR} from "@env";
 
 const Books = ({ groupId, token }) => {
   const [books, setBooks] = useState(null);
@@ -16,7 +17,7 @@ const Books = ({ groupId, token }) => {
   const fetchGroupHistory = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.10:3000/group/${groupId}/books`,
+        `${EXPO_IP_ADDR}/group/${groupId}/books`,
         {
           method: "GET",
           headers: {

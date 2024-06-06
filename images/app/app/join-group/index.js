@@ -15,6 +15,7 @@ import { getToken, fetchAuthenticatedUser } from "../../components/authService";
 import Header from "../../components/header";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { Camera } from "expo-camera";
+import {EXPO_IP_ADDR} from "@env";
 
 const JoinGroup = () => {
   const [user, setUser] = useState(null);
@@ -66,7 +67,7 @@ const JoinGroup = () => {
     setStatus({ ...status, fetchingGroup: true, error: null });
     try {
       const response = await fetch(
-        `http://192.168.1.10:3000/group/find/${QRCode}`,
+        `${EXPO_IP_ADDR}/group/find/${QRCode}`,
         {
           method: "GET",
           headers: {
@@ -91,7 +92,7 @@ const JoinGroup = () => {
 
   const joinGroup = async () => {
     try {
-      const response = await fetch(`http://192.168.1.10:3000/user/group`, {
+      const response = await fetch(`${EXPO_IP_ADDR}/user/group`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

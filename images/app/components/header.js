@@ -1,8 +1,22 @@
-import React from 'react';
-import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Image, TouchableOpacity, StyleSheet, Modal, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 const Header = ({ user }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleProfilePress = () => {
+    setMenuVisible(false);
+    router.navigate('/profile');
+  };
+
+  const handleLogoutPress = async () => {
+    await AsyncStorage.removeItem('token');
+    setMenuVisible(false);
+    router.navigate('/login');
+  };
+
   return (
     <View style={styles.header}>
       <View style={styles.headerImageContainer}>
@@ -10,13 +24,35 @@ const Header = ({ user }) => {
       </View>
       {user.profile_picture && (
         <TouchableOpacity
-          onPress={() => router.navigate('/profile')}
+          onPress={() => setMenuVisible(true)}
           style={styles.profilePictureContainer}>
           <Image
             source={{ uri: user.profile_picture }}
             style={styles.profilePicture}
           />
         </TouchableOpacity>
+      )}
+      {menuVisible && (
+        <Modal
+          transparent={true}
+          animationType="fade"
+          visible={menuVisible}
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            onPress={() => setMenuVisible(false)}
+          >
+            <View style={styles.menuContainer}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleProfilePress}>
+                <Text style={styles.menuText}>Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={handleLogoutPress}>
+                <Text style={styles.menuText}>Log Out</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       )}
     </View>
   );
@@ -29,7 +65,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    // backgroundColor: '#2899E0',
     paddingHorizontal: 20,
     position: 'relative',
     paddingVertical: 20,
@@ -49,6 +84,25 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  menuContainer: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 6,
+    width: 150,
+    alignItems: 'center',
+  },
+  menuItem: {
+    padding: 10,
+  },
+  menuText: {
+    fontSize: 16,
   },
 });
 

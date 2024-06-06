@@ -4,10 +4,12 @@ import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, 
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../../components/header'; // Assuming you have a Header component
+import {EXPO_IP_ADDR} from "@env";
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // console.log(EXPO_IP_ADDR)
 
   console.log("index.js loaded");
 
@@ -36,7 +38,7 @@ const LoginForm = () => {
 
       console.log('Login Data:', loginData);
 
-      const response = await fetch('http://192.168.1.10:3000/login', {
+      const response = await fetch(`${EXPO_IP_ADDR}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

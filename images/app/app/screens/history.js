@@ -9,15 +9,17 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Svg, Path } from 'react-native-svg';
+import {EXPO_IP_ADDR} from "@env";
 const History = ({ groupId, token }) => {
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
 
   const fetchGroupHistory = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.10:3000/group/${groupId}/book_history`,
+        `${EXPO_IP_ADDR}/group/${groupId}/book_history`,
         {
           method: "GET",
           headers: {

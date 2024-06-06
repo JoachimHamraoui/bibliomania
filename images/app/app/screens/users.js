@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { router } from "expo-router";
+import {EXPO_IP_ADDR} from "@env";
 
 const Users = ({groupId, token}) => {
   const [users, setUsers] = useState(null);
@@ -17,7 +18,7 @@ const Users = ({groupId, token}) => {
   const fetchGroupUsers = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.10:3000/group/${groupId}/users`,
+        `${EXPO_IP_ADDR}/group/${groupId}/users`,
         {
           method: "GET",
           headers: {

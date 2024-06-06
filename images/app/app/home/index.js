@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Svg, Path } from 'react-native-svg';
 import { getToken, fetchAuthenticatedUser } from '../../components/authService';
 import Header from '../../components/header';
+import {EXPO_IP_ADDR} from "@env";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -35,7 +36,7 @@ const Home = () => {
   }, []);
 
   const fetchGroups = async (token, role) => {
-    const url = role === 'teacher' ? 'http://192.168.1.10:3000/teacher/created-groups' : 'http://192.168.1.10:3000/student/groups';
+    const url = role === 'teacher' ? `${EXPO_IP_ADDR}/teacher/created-groups` : `${EXPO_IP_ADDR}/student/groups`;
     try {
       const response = await fetch(url, {
         method: 'GET',

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getToken, fetchAuthenticatedUser } from '../../components/authService';
 import Header from '../../components/header';
 import { Svg, Path } from 'react-native-svg';
+import {EXPO_IP_ADDR} from "@env";
 
 // Import tab screens
 import History from '../screens/history';
@@ -22,7 +23,7 @@ const Group = () => {
 
   const fetchGroupInfo = async (token, id) => {
     try {
-      const response = await fetch(`http://192.168.1.10:3000/group/${id}`, {
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
