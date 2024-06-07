@@ -5,6 +5,8 @@ import { getToken, fetchAuthenticatedUser } from '../../components/authService';
 import Header from '../../components/header';
 import { Svg, Path } from 'react-native-svg';
 import {EXPO_IP_ADDR} from "@env";
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 // Import tab screens
 import History from '../screens/history';
@@ -101,21 +103,8 @@ const Group = () => {
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
                   <Text style={styles.title}>{group.name}</Text>
-                  <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)}>
-                    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <Path
-                        d="M12 5C13.1046 5 14 4.10457 14 3C14 1.89543 13.1046 1 12 1C10.8954 1 10 1.89543 10 3C10 4.10457 10.8954 5 12 5Z"
-                        fill="#0B326C"
-                      />
-                      <Path
-                        d="M16 14C16 11.7909 14.2091 10 12 10C9.79086 10 8 11.7909 8 14V16H16V14Z"
-                        fill="#0B326C"
-                      />
-                      <Path
-                        d="M21 7H19V5H17V7H15V9H17V11H19V9H21V7Z"
-                        fill="#0B326C"
-                      />
-                    </Svg>
+                  <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
+                    <FontAwesome6 name="user-plus" size={16} color="white" style={styles.icon} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.tabBar}>
@@ -192,7 +181,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  inviteButton: {
+    backgroundColor: '#2465C7',
+    borderRadius: 10,
+    padding: 10,
+  },
 });
 
 export default Group;

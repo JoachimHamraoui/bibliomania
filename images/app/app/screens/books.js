@@ -7,14 +7,20 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import {EXPO_IP_ADDR} from "@env";
+import Svg, { Path } from "react-native-svg"; // Import SVG components
+import { EXPO_IP_ADDR } from "@env";
+import { getToken, fetchAuthenticatedUser } from '../../components/authService';
+import { router } from 'expo-router';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const Books = ({ groupId, token }) => {
   const [books, setBooks] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
 
-  const fetchGroupHistory = async () => {
+  const fetchGroupBooks = async () => {
     try {
       const response = await fetch(
         `${EXPO_IP_ADDR}/group/${groupId}/books`,
@@ -43,7 +49,21 @@ const Books = ({ groupId, token }) => {
   };
 
   useEffect(() => {
-    fetchGroupHistory();
+    fetchGroupBooks();
+
+    const getUserData = async () => {
+      const token = await getToken();
+      if (token) {
+        const userData = await fetchAuthenticatedUser(token);
+        setUser(userData);
+        console.log(userData);
+
+        setRole(userData.role);
+      }
+    };
+
+    getUserData();
+
   }, [groupId, token]);
 
   if (loading) {
@@ -64,6 +84,17 @@ const Books = ({ groupId, token }) => {
 
   return (
     <View style={styles.container}>
+      {role === 'teacher' && (
+        <View style={styles.teacherButtonsContainer}>
+          <TouchableOpacity
+            onPress={() => router.navigate(`/group/${groupId}/add-book`)}
+            style={styles.buttonContainer}
+          >
+            <MaterialIcons name="bookmark-add" size={24} color="white" style={styles.icon} />
+            <Text style={styles.buttonText}>Add Book</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {books && books.length > 0 ? (
         books.map((book, index) => (
           <View key={index} style={styles.bookHistoryContainer}>
@@ -93,16 +124,40 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     justifyContent: "center",
-    // alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  teacherButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  studentButtonContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    width: "100%", // Adjusted for spacing between buttons
+    alignItems: "center",
+    backgroundColor: "#2465C7",
+    borderRadius: 6,
+    padding: 12,
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.45,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  buttonText: {
+    fontSize: 14, // Smaller font size for button text
+    color: '#FAF9F6',
+    fontFamily: 'Montserrat_400Regular',
+    marginTop: 10, // Adjusted to create space between icon and text
   },
   text: {
     fontSize: 24,
-  },
-  statusText: {
-    fontSize: 12,
-    marginBottom: 10,
-    color: "#0B326C",
-    fontFamily: "Montserrat_700Bold",
   },
   bookHistoryContainer: {
     flexDirection: "row",
@@ -142,26 +197,6 @@ const styles = StyleSheet.create({
   },
   bookAuthorName: {
     fontFamily: "Montserrat_700Bold",
-  },
-  bookInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    bottom: -50,
-  },
-  bookInfoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  bookInfoIcon: {
-    fill: "#2465C7",
-  },
-  bookInfoText: {
-    fontSize: 12,
-    fontFamily: "Montserrat_500Medium",
-    color: "#0B326C",
-    marginRight: 10,
-    marginLeft: 5,
   },
   bookDescription: {
     fontSize: 8,
