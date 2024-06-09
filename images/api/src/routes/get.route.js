@@ -467,6 +467,7 @@ router.get("/group/:group_id/book_history", authenticateToken, async (req, res) 
     }
 });
 
+// Route to get the last vote for a group and check if it is completed
 router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => {
     const { group_id } = req.params;
 
@@ -487,7 +488,8 @@ router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => 
         const isCompleted = lastVote.ended;
 
         res.status(200).send({
-            isCompleted: isCompleted, // Inverting the value to match your requirement
+            vote_id: lastVote.id,  // Include the vote ID in the response
+            isCompleted: isCompleted ? true : false, // Return the completed status directly
         });
     } catch (error) {
         console.error(error);
@@ -497,6 +499,7 @@ router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => 
         });
     }
 });
+
 
 router.get("/group/:group_id/ongoing-vote", authenticateToken, async (req, res) => {
   const { group_id } = req.params;

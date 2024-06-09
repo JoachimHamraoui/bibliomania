@@ -112,9 +112,35 @@ const History = ({ groupId, token }) => {
     }
   };
 
+  const postNewVote = async (groupId, token) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/vote`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ group_id: groupId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to post new vote");
+      }
+  
+      const result = await response.json();
+      console.log("Vote posted successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("Error posting new vote:", error);
+      throw error; // Re-throw the error for further handling
+    }
+  };
+
   useEffect(() => {
     fetchGroupHistory();
     fetchRecentVote();
+
+    console.log("Vote Info:", vote)
 
 
     const getUserData = async () => {
@@ -165,11 +191,15 @@ const History = ({ groupId, token }) => {
 
   return (
     <View style={styles.container}>
-      {role === 'teacher' && (
+      {role === 'teacher' && incompleteBooks.length === 0 && (
         <View style={styles.teacherButtonsContainer}>
         {(!vote || vote.isCompleted) ? (
   <TouchableOpacity
-    onPress={() => { /* Start a new vote function */ }}
+    onPress={() => {
+    postNewVote(groupId, token)
+      .then(response => console.log("Vote created:", response))
+      .catch(error => console.error("Failed to create vote:", error));
+  }}
     style={styles.buttonContainer}
   >
     <MaterialIcons name="menu-book" size={24} color="white" style={styles.icon} />
@@ -177,7 +207,7 @@ const History = ({ groupId, token }) => {
   </TouchableOpacity>
 ) : (
   <TouchableOpacity
-    onPress={() => { /* Navigate to ongoing vote function */ }}
+    onPress={() => router.navigate(`/group/${groupId}/ongoing-vote`)}
     style={styles.buttonContainer}
   >
     <MaterialIcons name="menu-book" size={24} color="white" style={styles.icon} />
@@ -190,15 +220,16 @@ const History = ({ groupId, token }) => {
 
       {role === 'student' && (
         <View style={styles.teacherButtonsContainer}>
-          {vote && !vote.isCompleted && (
-            <TouchableOpacity
-              onPress={() => { /* Placeholder for function */ }}
-              style={styles.buttonContainer}
-            >
-              <MaterialIcons name="menu-book" size={24} color="white" style={styles.icon} />
-              <Text style={styles.buttonText}>Vote on next book</Text>
-            </TouchableOpacity>
-          )}
+        {vote && !vote.isCompleted && (
+  <TouchableOpacity
+    onPress={() => router.navigate(`/group/${groupId}/vote/${vote.vote_id}`)}
+    style={styles.buttonContainer}
+  >
+    <MaterialIcons name="menu-book" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>Vote on next book</Text>
+  </TouchableOpacity>
+)}
+
         </View>
       )}
       <Text style={styles.statusText}>Books we are reading</Text>
