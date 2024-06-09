@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const Books = ({ groupId, token }) => {
-  const [books, setBooks] = useState(null);
+  const [books, setBooks] = useState([]); // Initialize with an empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
@@ -23,7 +23,7 @@ const Books = ({ groupId, token }) => {
   const fetchGroupBooks = async () => {
     try {
       const response = await fetch(
-        `${EXPO_IP_ADDR}/group/${groupId}/books`,
+        `${EXPO_IP_ADDR}/group/${groupId}/remaining-books`,
         {
           method: "GET",
           headers: {
@@ -34,14 +34,14 @@ const Books = ({ groupId, token }) => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch group history info");
+        throw new Error("Failed to fetch remaining books");
       }
 
       const result = await response.json();
-      setBooks(result.data);
-      console.log("Group Info:", result.data);
+      setBooks(result.remainingBooks || []); // Correctly access and set the remainingBooks field
+      console.log("Remaining Books:", result.remainingBooks);
     } catch (error) {
-      console.error("Error fetching group info:", error);
+      console.error("Error fetching group books:", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -49,8 +49,6 @@ const Books = ({ groupId, token }) => {
   };
 
   useEffect(() => {
-    fetchGroupBooks();
-
     const getUserData = async () => {
       const token = await getToken();
       if (token) {
@@ -63,6 +61,7 @@ const Books = ({ groupId, token }) => {
     };
 
     getUserData();
+    fetchGroupBooks();
 
   }, [groupId, token]);
 
@@ -95,7 +94,7 @@ const Books = ({ groupId, token }) => {
           </TouchableOpacity>
         </View>
       )}
-      {books && books.length > 0 ? (
+      {books.length > 0 ? (
         books.map((book, index) => (
           <View key={index} style={styles.bookHistoryContainer}>
             <View style={styles.bookCoverContainer}>
@@ -113,7 +112,7 @@ const Books = ({ groupId, token }) => {
           </View>
         ))
       ) : (
-        <Text style={styles.text}>No books in Group</Text>
+        <Text style={styles.text}>No remaining books</Text>
       )}
     </View>
   );
@@ -129,10 +128,6 @@ const styles = StyleSheet.create({
   teacherButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  studentButtonContainer: {
-    alignItems: "center",
     marginBottom: 20,
   },
   buttonContainer: {

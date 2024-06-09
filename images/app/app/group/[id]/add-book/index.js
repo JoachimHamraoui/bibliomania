@@ -1,96 +1,139 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, TextInput, StatusBar } from 'react-native';
-import { router } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
-import { firebase } from "../../../../firebase-config"; // Import storage from your firebase-config.js file
 import { getToken, fetchAuthenticatedUser } from '../../../../components/authService';
 import Header from '../../../../components/header';
-import {EXPO_IP_ADDR} from "@env";
+import { EXPO_IP_ADDR, ISBN_DB_API_KEY } from "@env";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import { router } from 'expo-router';
 
 const AddBook = () => {
+  const { id } = useLocalSearchParams();
   const [user, setUser] = useState(null);
-  const [image, setImage] = useState(null);
-  const [name, setName] = useState("");
+  const [group, setGroup] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
-  const [code, setCode] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [downloadURL, setDownloadURL] = useState(null);
+  const [cover, setCover] = useState(null);
+  const [isbn, setIsbn] = useState("");
   const [token, setToken] = useState(null); // Add state to store the token
+  const [uploading, setUploading] = useState(false);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [scanned, setScanned] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
-  const generateRandomString = (length) => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters[randomIndex];
+  // Fetch group info
+  const fetchGroupInfo = async (token, id) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch group info');
+      }
+
+      const result = await response.json();
+      setGroup(result.data);
+      console.log('Group Info:', result.data);
+    } catch (error) {
+      console.error('Error fetching group info:', error);
+    } finally {
+      setLoading(false);
     }
-    return result;
   };
 
+  // Pick image
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      aspect: [16, 9],
+      aspect: [1.5, 1],
       quality: 1,
     });
 
     if (!result.cancelled) {
-      setImage(result.assets[0].uri);
+      setCover(result.assets[0].uri);
     }
   };
 
-  const uploadImage = async (token) => {
-    setUploading(true);
-
+  // Add book
+  const addBook = async () => {
     try {
-      const { uri } = await FileSystem.getInfoAsync(image);
-      const blob = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = () => {
-          resolve(xhr.response);
-        };
-        xhr.onerror = (e) => {
-          reject(new TypeError("Network Request Failed"));
-        };
-        xhr.responseType = "blob";
-        xhr.open("GET", uri, true);
-        xhr.send(null);
-      });
-
-      const filename = image.substring(image.lastIndexOf("/") + 1);
-      const ref = firebase
-        .storage()
-        .ref()
-        .child("Level/" + filename);
-      const snapshot = await ref.put(blob);
-      const url = await snapshot.ref.getDownloadURL(); // Get the download URL
-      setDownloadURL(url); // Set the download URL to the state
-      setUploading(false);
-      setImage(null);
-      console.log(await snapshot.ref.getDownloadURL());
-
-      //192.168.1.10
-
-      const response = await fetch(`${EXPO_IP_ADDR}/group`, {
-        method: "POST",
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${id}/book`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`, // Use the token
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, description, image: await snapshot.ref.getDownloadURL(), code }),
+        body: JSON.stringify({
+          title,
+          author,
+          cover,
+          description
+        })
+        
       });
 
-      const responseData = await response.json();
-      console.log("Response:", responseData);
-      router.navigate("/home");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Book added successfully:', data);
+      router.navigate(`/group/${id}`);
+      // Handle success (e.g., update UI, notify user)
     } catch (error) {
-      console.error(error);
-      setUploading(false);
+      console.error('Error adding book:', error);
+      // Handle error (e.g., show error message)
     }
   };
 
+  // Fetch book details from ISBNDB
+  const fetchBookDetails = async (isbn) => {
+    try {
+      const response = await fetch(`https://api2.isbndb.com/book/${isbn}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': ISBN_DB_API_KEY, // Use the API key from .env
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch book details');
+      }
+
+      const result = await response.json();
+      const bookData = result.book;
+
+      // Update state with fetched data
+      setTitle(bookData.title || "");
+      setAuthor(bookData.authors[0] || "");
+      setCover(bookData.image || null);
+      // Description isn't typically provided by the API, so you might have to manually enter it
+      console.log('Book Data:', bookData);
+    } catch (error) {
+      console.error('Error fetching book details:', error);
+    }
+  };
+
+  // Handle barcode scanned
+  const handleBarCodeScanned = ({ type, data }) => {
+    setScanned(true);
+    setIsScanning(false);
+    setIsbn(data);
+    fetchBookDetails(data); // Fetch book details using the ISBN
+    console.log(`Scanned ISBN: ${data}`);
+  };
+
+  // Fetch user data and request camera permissions
   useEffect(() => {
     const getUserData = async () => {
       const token = await getToken();
@@ -99,47 +142,96 @@ const AddBook = () => {
         const userData = await fetchAuthenticatedUser(token);
         setUser(userData);
         console.log(userData);
+        fetchGroupInfo(token, id);
       }
     };
 
-    const newString = generateRandomString(10);
-    setCode(newString); 
-    getUserData();
-  }, []);
+    const requestCameraPermission = async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    };
 
+    requestCameraPermission();
+    getUserData();
+  }, [id]);
+
+  // Render camera
+  const renderCamera = () => {
+    return (
+      <View style={styles.cameraContainer}>
+        <BarCodeScanner
+          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          style={styles.camera}
+        />
+        <TouchableOpacity
+          style={styles.formBtnCamera}
+          onPress={() => setIsScanning(false)}
+        >
+          <Text style={styles.formBtnText}>Close Scanner</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Check permissions and display camera
+  if (isScanning && hasPermission) {
+    return <View style={styles.container}>{renderCamera()}</View>;
+  }
+
+  // Display loading or main content
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#2899E0" translucent={true} />
       <ImageBackground
         source={require('../../../../assets/app-background-img.jpg')}
-        style={styles.background}>
+        style={styles.background}
+      >
         {user ? (
           <>
             <Header user={user} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
-                <Text style={styles.title}>Create Group</Text>
-                <TextInput style={styles.input} placeholder="Group Name" onChangeText={(text) => setName(text)} />
-                {/* <Button title="Pick an image from camera roll" onPress={pickImage} styles={styles.button} /> */}
-                <TouchableOpacity style={styles.input} onPress={pickImage}>
-                  <Text style={styles.inputText}>Pick an image from camera roll</Text>
-                </TouchableOpacity>
-                {image && (
-                  <Image
-                    source={{ uri: image }}
-                    style={{ width: "100%", height: 200, marginVertical: 20 }}
-                  />
+                {group && (
+                  <Text style={styles.title}>Add Book to {group.name ? group.name : "Group"}</Text>
                 )}
-                <TextInput style={styles.input} placeholder="Group Description" onChangeText={(text) => setDescription(text)}/>
-                <TouchableOpacity style={styles.formBtn} onPress={() => uploadImage(token)}>
-                <Text style={styles.formBtnText}>Create Group</Text>
-              </TouchableOpacity>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Title"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Author"
+                  value={author}
+                  onChangeText={setAuthor}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Description"
+                  value={description}
+                  onChangeText={setDescription}
+                />
+                <TouchableOpacity style={styles.formBtn} onPress={pickImage}>
+                  <Text style={styles.formBtnText}>Choose Cover</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.formBtn} onPress={addBook}>
+                  <Text style={styles.formBtnText}>Add Book</Text>
+                </TouchableOpacity>
+                <Text style={styles.formBtnSubTitle}>Find book faster</Text>
+                <TouchableOpacity style={styles.formBtn} onPress={() => {
+                    setScanned(false);
+                    setIsScanning(true);
+                  }}>
+                  <Text style={styles.formBtnText}>Scan ISBN</Text>
+                </TouchableOpacity>
+                {isbn && (
+                  <Text>ISBN: {isbn}</Text>
+                )}
+                {cover && (
+                  <Image source={{ uri: cover }} style={styles.coverImage} />
+                )}
               </View>
-              {/* <Button
-                title="Upload Image"
-                onPress={() => uploadImage(token)} // Pass the token to the uploadImage function
-                styles={styles.button}
-              /> */}
             </ScrollView>
           </>
         ) : (
@@ -195,10 +287,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
-  inputText: {
-    fontSize: 18,
-    fontFamily: 'Montserrat_400Regular',
-  },
   formBtn: {
     width: '100%',
     paddingLeft: 10,
@@ -213,13 +301,65 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat_400Regular',
     color: '#FAF9F6',
   },
+  formBtnCamera: {
+    width: "50%",
+    paddingLeft: 10,
+    paddingVertical: 14,
+    backgroundColor: "#2465C7",
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 10,
+    alignItems: "center",
+    position: "absolute",
+    bottom: 20,
+    left: "25%",
+  },
+  formBtnSubTitle: {
+    fontSize: 18,
+    fontFamily: 'Montserrat_700Bold',
+    color: '#0B326C',
+    textAlign: 'center',
+    marginVertical: 5,
+  },
+  coverImage: {
+    width: 200,
+    height: 300,
+    marginTop: 10,
+    alignSelf: 'center',
+    borderRadius: 5,
+  },
+  cameraContainer: {
+    width: "70%",
+    height: "90%",
+    aspectRatio: 1,
+    overflow: "hidden",
+    borderRadius: 10,
+    marginBottom: 40,
+    marginTop: 20,
+  },
+  camera: {
+    flex: 1,
+  },
+  closeCameraButton: {
+    backgroundColor: "red",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    position: "absolute",
+    bottom: 20,
+    left: "50%",
+    transform: [{ translateX: -50 }],
+  },
+  closeCameraButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
 });
-
-
 
 export default AddBook;

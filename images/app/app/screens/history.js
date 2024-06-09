@@ -20,6 +20,7 @@ const History = ({ groupId, token }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [vote, setVote] = useState(null);
+  const [bookInProgress, setBookInProgress] = useState("");
 
   const fetchGroupHistory = async () => {
     try {
@@ -81,9 +82,40 @@ const History = ({ groupId, token }) => {
     }
   };
 
+  const fetchProgressBooks = async () => {
+    try {
+      const response = await fetch(
+        `${EXPO_IP_ADDR}/group/${groupId}/book/${bookInProgress}/read`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 404) {
+        // Handle the case where no vote has taken place
+        console.log("Cannot check if all users have read book in progress.");
+      } else if (!response.ok) {
+        throw new Error("Failed to fetch progress of recent book.");
+      } else {
+        const result = await response.json();
+        console.log("Has everybody read the book? ", result);
+      }
+    } catch (error) {
+      console.error("Error fetching recent vote:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchGroupHistory();
     fetchRecentVote();
+
 
     const getUserData = async () => {
       const token = await getToken();
@@ -98,6 +130,22 @@ const History = ({ groupId, token }) => {
 
     getUserData();
   }, [groupId, token]);
+
+  // Filter completed and incomplete books
+  const completedBooks = history?.filter((book) => book.completed) || [];
+  const incompleteBooks = history?.filter((book) => !book.completed) || [];
+
+  // Use effect to set bookInProgress when incompleteBooks changes
+  useEffect(() => {
+    if (incompleteBooks?.length > 0) {
+      setBookInProgress(incompleteBooks[0]?.book_id || "");
+      console.log("Book in Progress ID:", incompleteBooks[0]?.book_id || "None");
+      fetchProgressBooks();
+    } else {
+      setBookInProgress("");
+      console.log("No book in progress.");
+    }
+  }, [incompleteBooks]);
 
   if (loading) {
     return (
@@ -114,10 +162,6 @@ const History = ({ groupId, token }) => {
       </View>
     );
   }
-
-  // Filter completed and incomplete books
-  const completedBooks = history.filter((book) => book.completed);
-  const incompleteBooks = history.filter((book) => !book.completed);
 
   return (
     <View style={styles.container}>
