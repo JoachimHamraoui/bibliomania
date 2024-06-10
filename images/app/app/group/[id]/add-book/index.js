@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, Image, TouchableOpacity, TextInput, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { getToken, fetchAuthenticatedUser } from '../../../../components/authService';
 import Header from '../../../../components/header';
 import { EXPO_IP_ADDR, ISBN_DB_API_KEY } from "@env";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { router } from 'expo-router';
+import { firebase } from "../../../../firebase-config"; // Import storage from your firebase-config.js file
 
 const AddBook = () => {
   const { id } = useLocalSearchParams();
@@ -20,9 +21,13 @@ const AddBook = () => {
   const [isbn, setIsbn] = useState("");
   const [token, setToken] = useState(null); // Add state to store the token
   const [uploading, setUploading] = useState(false);
+  const [downloadURL, setDownloadURL] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [isImageFromPicker, setIsImageFromPicker] = useState(false); // Track if the image is from the picker
+
+  const router = useRouter();
 
   // Fetch group info
   const fetchGroupInfo = async (token, id) => {
@@ -52,7 +57,7 @@ const AddBook = () => {
   // Pick image
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Limit to images only
       allowsEditing: true,
       aspect: [1.5, 1],
       quality: 1,
@@ -60,11 +65,58 @@ const AddBook = () => {
 
     if (!result.cancelled) {
       setCover(result.assets[0].uri);
+      setIsImageFromPicker(true); // Set the image source flag
+    }
+  };
+
+  // Upload image
+  const uploadImage = async (imageUri) => {
+    setUploading(true);
+
+    try {
+      const { uri } = await FileSystem.getInfoAsync(imageUri); // Get file info
+      const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => resolve(xhr.response);
+        xhr.onerror = (e) => reject(new TypeError("Network request failed"));
+        xhr.responseType = "blob";
+        xhr.open("GET", uri, true);
+        xhr.send(null);
+      });
+
+      const filename = imageUri.substring(imageUri.lastIndexOf("/") + 1);
+      const ref = firebase.storage().ref().child("books/" + filename);
+      const snapshot = await ref.put(blob);
+      const url = await snapshot.ref.getDownloadURL(); // Get the download URL
+
+      setDownloadURL(url); // Set the download URL to the state
+      setCover(url); // Set the cover URL to the download URL
+      setUploading(false);
+      console.log("Image uploaded and URL obtained:", url);
+
+      blob.close(); // Close the blob
+      return url; // Return the URL for further use
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setUploading(false);
+      return null; // Return null in case of an error
     }
   };
 
   // Add book
   const addBook = async () => {
+    let imageURL = cover; // Default to the current cover URL
+
+    if (isImageFromPicker) {
+      // If the image is from the picker, upload it first
+      imageURL = await uploadImage(cover);
+    }
+
+    if (!imageURL) {
+      console.error("Error: Image URL not obtained.");
+      return; // Abort if the image URL is not available
+    }
+
     try {
       const response = await fetch(`${EXPO_IP_ADDR}/group/${id}/book`, {
         method: 'POST',
@@ -75,10 +127,9 @@ const AddBook = () => {
         body: JSON.stringify({
           title,
           author,
-          cover,
+          cover: imageURL, // Use the imageURL obtained from Firebase
           description
         })
-        
       });
 
       if (!response.ok) {
@@ -87,11 +138,9 @@ const AddBook = () => {
 
       const data = await response.json();
       console.log('Book added successfully:', data);
-      router.navigate(`/group/${id}`);
-      // Handle success (e.g., update UI, notify user)
+      router.back();
     } catch (error) {
       console.error('Error adding book:', error);
-      // Handle error (e.g., show error message)
     }
   };
 
@@ -117,7 +166,7 @@ const AddBook = () => {
       setTitle(bookData.title || "");
       setAuthor(bookData.authors[0] || "");
       setCover(bookData.image || null);
-      // Description isn't typically provided by the API, so you might have to manually enter it
+      setIsImageFromPicker(false); // Image is from ISBN scan
       console.log('Book Data:', bookData);
     } catch (error) {
       console.error('Error fetching book details:', error);
@@ -213,16 +262,15 @@ const AddBook = () => {
                   onChangeText={setDescription}
                 />
                 <TouchableOpacity style={styles.formBtn} onPress={pickImage}>
-                  <Text style={styles.formBtnText}>Choose Cover</Text>
+                  <Text style={styles.formBtnText}>Pick an Image</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.formBtn} onPress={addBook}>
-                  <Text style={styles.formBtnText}>Add Book</Text>
+                <TouchableOpacity style={styles.formBtn} onPress={addBook} disabled={uploading}>
+                  <Text style={styles.formBtnText}>{uploading ? "Uploading..." : "Add Book"}</Text>
                 </TouchableOpacity>
-                <Text style={styles.formBtnSubTitle}>Find book faster</Text>
                 <TouchableOpacity style={styles.formBtn} onPress={() => {
-                    setScanned(false);
-                    setIsScanning(true);
-                  }}>
+                  setScanned(false);
+                  setIsScanning(true);
+                }}>
                   <Text style={styles.formBtnText}>Scan ISBN</Text>
                 </TouchableOpacity>
                 {isbn && (

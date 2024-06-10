@@ -7,7 +7,7 @@ import { EXPO_IP_ADDR } from "@env";
 import { router } from 'expo-router';
 
 const OngoingVote = () => {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams(); // `id` is group_id
   const router = useRouter();
 
   const [user, setUser] = useState(null);
@@ -16,6 +16,7 @@ const OngoingVote = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [mostVotedBook, setMostVotedBook] = useState(null);
   const [voteId, setVoteId] = useState(null);
+  const [groupUsers, setGroupUsers] = useState([]); // State to store all users in the group
 
   useEffect(() => {
     const getUserData = async () => {
@@ -24,8 +25,8 @@ const OngoingVote = () => {
       if (token) {
         const userData = await fetchAuthenticatedUser(token);
         setUser(userData);
-        console.log(userData);
         fetchOngoingVote(token, id);
+        fetchGroupUsers(token, id); // Fetch group users
       }
     };
 
@@ -51,12 +52,30 @@ const OngoingVote = () => {
       setLoading(false); // Set loading to false after data is fetched
       setMostVotedBook(result.ongoingVote.mostVotedBook);
       setVoteId(result.ongoingVote.vote_id);
-      console.log("Most Voted Book:", result.ongoingVote.mostVotedBook);
-      console.log("Vote ID:", result.ongoingVote.vote_id);
-      console.log("Ongoing Vote Data:", result.ongoingVote);
     } catch (error) {
       console.error('Error fetching ongoing vote data:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchGroupUsers = async (token, groupId) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${groupId}/users`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch group users');
+      }
+
+      const result = await response.json();
+      setGroupUsers(result.data); // Assuming the response contains an array of users
+    } catch (error) {
+      console.error('Error fetching group users:', error);
     }
   };
 
@@ -74,11 +93,11 @@ const OngoingVote = () => {
         throw new Error('Failed to end the vote');
       }
 
-      // Assuming the PATCH request does not return significant data
       console.log('Vote ended successfully');
 
-      // Call postMostVotedBook after ending the vote
       await postMostVotedBook();
+      await postUserBooks(); // Call postUserBooks after posting the most voted book
+      router.back();
     } catch (error) {
       console.error('Error ending the vote:', error);
     }
@@ -94,7 +113,7 @@ const OngoingVote = () => {
         },
         body: JSON.stringify({
           book_id: mostVotedBook,
-          group_id: id, // Assuming `id` is the group's ID
+          group_id: id,
         }),
       });
 
@@ -102,13 +121,42 @@ const OngoingVote = () => {
         throw new Error('Failed to post most voted book');
       }
 
-      // Assuming the POST request does not return significant data
       console.log('Most voted book posted successfully');
-
-      // Navigate back or handle success as needed
-      router.back();
     } catch (error) {
       console.error('Error posting most voted book:', error);
+    }
+  };
+
+  const postUserBooks = async () => {
+    try {
+      console.log('Group Users:', groupUsers); // Log groupUsers to check its structure
+      for (const user of groupUsers) { // Assuming groupUsers is the response data
+        if (!user || !user.id) {
+          console.error('Invalid user data:', user);
+          continue; // Skip to the next user if user or user_id is missing
+        }
+        const response = await fetch(`${EXPO_IP_ADDR}/user/book`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.id,
+            book_id: mostVotedBook,
+            group_id: id,
+          }),
+        });
+  
+        if (!response.ok) {
+          console.error(`Failed to post book for user ${user.id}`);
+          continue; // Skip to the next user on failure
+        }
+  
+        console.log(`Book posted successfully for user ${user.id}`);
+      }
+    } catch (error) {
+      console.error('Error posting user books:', error);
     }
   };
 
@@ -165,7 +213,6 @@ const OngoingVote = () => {
     </>
   );
 };
-
 const styles = StyleSheet.create({
   background: {
     flex: 1,

@@ -185,8 +185,8 @@ router.post("/user", async (req, res) => {
   
   // Route to add an entry to the user_book table
   router.post("/user/book", authenticateToken, async (req, res) => {
-    const { book_id, group_id } = req.body;
-    const user_id = req.user.userId; // Extract user ID from JWT token payload
+    const { book_id, group_id, user_id } = req.body;
+    // const user_id = req.user.userId; // Extract user ID from JWT token payload
   
     try {
       // Insert the entry into the user_book table
