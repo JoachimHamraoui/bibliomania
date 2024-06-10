@@ -22,6 +22,7 @@ const Group = () => {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('History');
+  const [book, setBook] = useState(null);
 
   const fetchGroupInfo = async (token, id) => {
     try {
@@ -47,6 +48,30 @@ const Group = () => {
     }
   };
 
+  const fetchBookInfo = async (token, bookId) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/book/${bookId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch group info');
+      }
+
+      const result = await response.json();
+      setBook(result.data);
+      console.log('Group Info:', result.data);
+    } catch (error) {
+      console.error('Error fetching group info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const getUserData = async () => {
       const token = await getToken();
@@ -57,6 +82,7 @@ const Group = () => {
         console.log(userData);
 
         fetchGroupInfo(token, id);
+        fetchBookInfo(token, bookId);
       }
     };
 
@@ -70,7 +96,7 @@ const Group = () => {
       case 'Likes':
         return <Likes groupId={id} bookId={bookId} token={token} />;
       case 'Comments':
-        return <Comments groupId={id} bookId={bookId} token={token} />;
+        return <Comments groupId={id} bookId={bookId} token={token} userRole={user.role} />;
       default:
         return <Questions groupId={id} bookId={bookId} token={token} />;
     }
@@ -96,13 +122,13 @@ const Group = () => {
       <ImageBackground
         source={require('../../../../assets/app-background-img.jpg')}
         style={styles.background}>
-        {user && group ? (
+        {user && group && book ? (
           <>
             <Header user={user} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
-                  <Text style={styles.title}>{group.name}</Text>
+                  <Text style={styles.title}>{book.title}</Text>
                   {/* <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
                     <FontAwesome6 name="user-plus" size={16} color="white" style={styles.icon} />
                   </TouchableOpacity> */}
@@ -161,9 +187,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat_700Bold',
   },
   tabBar: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    backgroundColor: '#2899E0',
+    // backgroundColor: '#2899E0',
     width: '100%', 
     marginBottom: 24,
   },

@@ -90,9 +90,17 @@ const styles = StyleSheet.create({
   userContainer: {
     flexDirection: "row",
     padding: 10,
-    borderBottomWidth: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FAF9F6",
     borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   imageContainer: {
     marginRight: 10,
