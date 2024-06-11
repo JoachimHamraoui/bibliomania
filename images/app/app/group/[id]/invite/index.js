@@ -72,7 +72,7 @@ const Invite = () => {
         style={styles.background}>
         {user && group ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>

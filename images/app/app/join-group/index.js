@@ -160,7 +160,7 @@ const JoinGroup = () => {
       >
         {user ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <Text style={styles.title}>Join a Group</Text>

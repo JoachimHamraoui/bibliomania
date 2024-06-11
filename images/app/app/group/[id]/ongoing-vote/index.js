@@ -25,8 +25,11 @@ const OngoingVote = () => {
       if (token) {
         const userData = await fetchAuthenticatedUser(token);
         setUser(userData);
-        fetchOngoingVote(token, id);
-        fetchGroupUsers(token, id); // Fetch group users
+        await Promise.all([
+          fetchOngoingVote(token, id),
+          fetchGroupUsers(token, id)
+        ]);
+        setLoading(false); // Set loading to false after data is fetched
       }
     };
 
@@ -44,17 +47,16 @@ const OngoingVote = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch ongoing vote data');
+        console.error('Failed to fetch ongoing vote data');
+        return;
       }
 
       const result = await response.json();
       setOngoingVote(result.ongoingVote);
-      setLoading(false); // Set loading to false after data is fetched
       setMostVotedBook(result.ongoingVote.mostVotedBook);
       setVoteId(result.ongoingVote.vote_id);
     } catch (error) {
       console.error('Error fetching ongoing vote data:', error);
-      setLoading(false);
     }
   };
 
@@ -69,7 +71,8 @@ const OngoingVote = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch group users');
+        console.error('Failed to fetch group users');
+        return;
       }
 
       const result = await response.json();
@@ -147,12 +150,12 @@ const OngoingVote = () => {
             group_id: id,
           }),
         });
-  
+
         if (!response.ok) {
           console.error(`Failed to post book for user ${user.id}`);
           continue; // Skip to the next user on failure
         }
-  
+
         console.log(`Book posted successfully for user ${user.id}`);
       }
     } catch (error) {
@@ -176,33 +179,39 @@ const OngoingVote = () => {
         style={styles.background}>
         {user ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
                   <Text style={styles.title}>Ongoing Vote</Text>
                 </View>
-                {ongoingVote && ongoingVote.books.map(book => (
-                  <View key={book.book_id} style={styles.bookContainer}>
-                    <Image source={{ uri: book.cover }} style={styles.bookCover} />
-                    <View style={styles.bookInfoContainer}>
-                      <Text style={styles.bookTitle}>{book.title}</Text>
-                      <Text style={styles.bookAuthor}>by {book.author}</Text>
-                      <View style={styles.profilePicturesContainer}>
-                        {book.users.map((user, index) => (
-                          <Image
-                            key={index}
-                            source={{ uri: user.profile_picture }}
-                            style={styles.profilePicture}
-                          />
-                        ))}
+                {ongoingVote && ongoingVote.books.length > 0 ? (
+                  ongoingVote.books.map(book => (
+                    <View key={book.book_id} style={styles.bookContainer}>
+                      <Image source={{ uri: book.cover }} style={styles.bookCover} />
+                      <View style={styles.bookInfoContainer}>
+                        <Text style={styles.bookTitle}>{book.title}</Text>
+                        <Text style={styles.bookAuthor}>by {book.author}</Text>
+                        <View style={styles.profilePicturesContainer}>
+                          {book.users.map((user, index) => (
+                            <Image
+                              key={index}
+                              source={{ uri: user.profile_picture }}
+                              style={styles.profilePicture}
+                            />
+                          ))}
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
-                <TouchableOpacity style={styles.formBtn} onPress={endVote}>
-                  <Text style={styles.formBtnText}>End Vote</Text>
-                </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.noVotesText}>No votes have been cast yet.</Text>
+                )}
+                {ongoingVote && ongoingVote.books.length > 0 && (
+                  <TouchableOpacity style={styles.formBtn} onPress={endVote}>
+                    <Text style={styles.formBtnText}>End Vote</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </ScrollView>
           </>
@@ -213,6 +222,7 @@ const OngoingVote = () => {
     </>
   );
 };
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -300,6 +310,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Montserrat_400Regular',
     color: '#FAF9F6',
+  },
+  noVotesText: {
+    fontSize: 16,
+    color: '#0B326C',
+    fontFamily: 'Montserrat_500Medium',
+    textAlign: 'center',
+    marginVertical: 20,
   },
 });
 

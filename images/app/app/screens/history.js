@@ -129,6 +129,7 @@ const History = ({ groupId, token }) => {
   
       const result = await response.json();
       console.log("Vote posted successfully:", result);
+      fetchRecentVote();
       return result;
     } catch (error) {
       console.error("Error posting new vote:", error);

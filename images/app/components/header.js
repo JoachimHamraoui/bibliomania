@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Image, TouchableOpacity, StyleSheet, Modal, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const Header = ({ user }) => {
+const Header = ({ user, back = false }) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const handleProfilePress = () => {
@@ -17,12 +18,21 @@ const Header = ({ user }) => {
     router.navigate('/login');
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   return (
     <View style={styles.header}>
+      {back && (
+        <TouchableOpacity style={styles.backArrowContainer} onPress={handleBackPress}>
+          <MaterialIcons name="arrow-back" size={30} color="#FAF9F6" />
+        </TouchableOpacity>
+      )}
       <View style={styles.headerImageContainer}>
         <Image source={require('../assets/header-img.png')} style={styles.headerImage} />
       </View>
-      {user.profile_picture && (
+      {user?.profile_picture && (
         <TouchableOpacity
           onPress={() => setMenuVisible(true)}
           style={styles.profilePictureContainer}>
@@ -69,9 +79,14 @@ const styles = StyleSheet.create({
     position: 'relative',
     paddingVertical: 20,
   },
+  backArrowContainer: {
+    position: 'absolute',
+    left: 20,
+  },
   headerImageContainer: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerImage: {
     resizeMode: 'contain',

@@ -103,7 +103,7 @@ const voteBook = () => {
         style={styles.background}>
         {user ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>

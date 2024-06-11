@@ -237,7 +237,7 @@ const AddBook = () => {
       >
         {user ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 {group && (

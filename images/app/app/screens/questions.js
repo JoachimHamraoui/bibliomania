@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { EXPO_IP_ADDR } from '@env'; // Assuming EXPO_IP_ADDR is set in your environment variables
 
 const Questions = () => {
@@ -8,6 +8,7 @@ const Questions = () => {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -60,9 +61,7 @@ const Questions = () => {
                     key={question.question_id}
                     style={styles.questionContainer}
                     onPress={() => {
-                        // Handle the press event here
-                        console.log(`Question ID: ${question.question_id}`);
-                        // Additional logic can be added here
+                        router.navigate(`/group/${id}/book/${bookId}/question-detail/${question.question_id}`);
                     }}
                 >
                     <Text style={styles.questionText}>{question.question}</Text>
