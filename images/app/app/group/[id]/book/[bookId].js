@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getToken, fetchAuthenticatedUser } from '../../components/authService';
-import Header from '../../components/header';
+import { getToken, fetchAuthenticatedUser } from '../../../../components/authService';
+import Header from '../../../../components/header';
 import { Svg, Path } from 'react-native-svg';
 import {EXPO_IP_ADDR} from "@env";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 // Import tab screens
-import History from '../screens/history';
-import Users from '../screens/users';
-import Books from '../screens/books';
+import Questions from '../../../screens/questions';
+import Likes from '../../../screens/likes';
+import Comments from '../../../screens/comments';
 
 const Group = () => {
-  const { id } = useLocalSearchParams();
+  const { id, bookId } = useLocalSearchParams();
   const router = useRouter();
 
   const [user, setUser] = useState(null);
@@ -22,6 +22,7 @@ const Group = () => {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('History');
+  const [book, setBook] = useState(null);
 
   const fetchGroupInfo = async (token, id) => {
     try {
@@ -47,6 +48,30 @@ const Group = () => {
     }
   };
 
+  const fetchBookInfo = async (token, bookId) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/book/${bookId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch group info');
+      }
+
+      const result = await response.json();
+      setBook(result.data);
+      console.log('Group Info:', result.data);
+    } catch (error) {
+      console.error('Error fetching group info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const getUserData = async () => {
       const token = await getToken();
@@ -57,6 +82,7 @@ const Group = () => {
         console.log(userData);
 
         fetchGroupInfo(token, id);
+        fetchBookInfo(token, bookId);
       }
     };
 
@@ -65,14 +91,14 @@ const Group = () => {
 
   const renderScreen = () => {
     switch (selectedTab) {
-      case 'History':
-        return <History groupId={id} token={token} />;
-      case 'Books':
-        return <Books groupId={id} token={token} />;
-      case 'Students':
-        return <Users groupId={id} token={token} />;
+      case 'Questions':
+        return <Questions groupId={id} bookId={bookId} token={token} />;
+      case 'Likes':
+        return <Likes groupId={id} bookId={bookId} token={token} />;
+      case 'Comments':
+        return <Comments groupId={id} bookId={bookId} token={token} userRole={user.role} />;
       default:
-        return <History groupId={id} token={token} />;
+        return <Questions groupId={id} bookId={bookId} token={token} />;
     }
   };
 
@@ -94,28 +120,28 @@ const Group = () => {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#2899E0" translucent={true} />
       <ImageBackground
-        source={require('../../assets/app-background-img.jpg')}
+        source={require('../../../../assets/app-background-img.jpg')}
         style={styles.background}>
-        {user && group ? (
+        {user && group && book ? (
           <>
             <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
-                  <Text style={styles.title}>{group.name}</Text>
-                  <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
+                  <Text style={styles.title}>{book.title}</Text>
+                  {/* <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
                     <FontAwesome6 name="user-plus" size={16} color="white" style={styles.icon} />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
                 <View style={styles.tabBar}>
-                  <TouchableOpacity onPress={() => setSelectedTab('History')} style={tabItemStyle('History')}>
-                    <Text style={styles.tabText}>History</Text>
+                  <TouchableOpacity onPress={() => setSelectedTab('Questions')} style={tabItemStyle('Questions')}>
+                    <Text style={styles.tabText}>Q&A</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setSelectedTab('Books')} style={tabItemStyle('Books')}>
-                    <Text style={styles.tabText}>Books</Text>
+                  <TouchableOpacity onPress={() => setSelectedTab('Likes')} style={tabItemStyle('Likes')}>
+                    <Text style={styles.tabText}>Likes</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setSelectedTab('Students')} style={tabItemStyle('Students')}>
-                    <Text style={styles.tabText}>Students</Text>
+                  <TouchableOpacity onPress={() => setSelectedTab('Comments')} style={tabItemStyle('Comments')}>
+                    <Text style={styles.tabText}>Chat</Text>
                   </TouchableOpacity>
                 </View>
                 {renderScreen()}
@@ -161,9 +187,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat_700Bold',
   },
   tabBar: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    backgroundColor: '#2899E0',
+    // backgroundColor: '#2899E0',
     width: '100%', 
     marginBottom: 24,
   },

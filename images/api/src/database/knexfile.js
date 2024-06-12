@@ -7,23 +7,23 @@ require('dotenv').config();
 module.exports = {
   development: {
     client: 'pg',
-    connection: {
-      host:    process.env.POSTGRES_HOST || "127.0.0.1",
-      port:     5432,
-      database: process.env.POSTGRES_DB || "test",
-      user:    process.env.POSTGRES_USER || "test",
-      password: process.env.POSTGRES_PASSWORD || "test",
+    connection: process.env.DATABASE_URL || {
+      host: process.env.POSTGRES_HOST || '127.0.0.1',
+      port: 5432,
+      database: process.env.POSTGRES_DB || 'test',
+      user: process.env.POSTGRES_USER || 'test',
+      password: process.env.POSTGRES_PASSWORD || 'test',
     },
     pool: {
       min: 2,
-      max: 10
+      max: 10,
     },
     migrations: {
       directory: './migrations',
-      tableName: 'knex_migrations'
+      tableName: 'knex_migrations',
     },
     seeds: {
-      directory: './seeders'
-    }
-  }
+      directory: './seeders',
+    },
+  },
 };

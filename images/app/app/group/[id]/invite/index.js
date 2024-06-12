@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getToken, fetchAuthenticatedUser } from '../../../../components/authService';
 import Header from '../../../../components/header';
 import QRCode from 'react-native-qrcode-svg';
+import {EXPO_IP_ADDR} from "@env";
 
 const Invite = () => {
   const { id } = useLocalSearchParams();
@@ -17,7 +18,7 @@ const Invite = () => {
 
   const fetchGroupInfo = async (token, id) => {
     try {
-      const response = await fetch(`http://192.168.1.10:3000/group/${id}`, {
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -71,7 +72,7 @@ const Invite = () => {
         style={styles.background}>
         {user && group ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <View style={styles.titleContainer}>

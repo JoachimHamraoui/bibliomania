@@ -6,6 +6,7 @@ import * as FileSystem from "expo-file-system";
 import { firebase } from "../../firebase-config"; // Import storage from your firebase-config.js file
 import { getToken, fetchAuthenticatedUser } from '../../components/authService';
 import Header from '../../components/header';
+import {EXPO_IP_ADDR} from "@env";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -72,7 +73,7 @@ const Home = () => {
 
       //192.168.1.10
 
-      const response = await fetch("http://192.168.1.10:3000/group", {
+      const response = await fetch(`${EXPO_IP_ADDR}/group`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -114,7 +115,7 @@ const Home = () => {
         style={styles.background}>
         {user ? (
           <>
-            <Header user={user} />
+            <Header user={user} back={true} />
             <ScrollView contentContainerStyle={styles.container}>
               <View style={styles.content}>
                 <Text style={styles.title}>Create Group</Text>

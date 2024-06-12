@@ -54,6 +54,36 @@ function authenticateToken(req, res, next) {
     }
 });
 
+router.get("/book/:book_id", authenticateToken, async (req, res) => {
+    const { book_id } = req.params;
+
+    try {
+        // Fetch the book details by book_id
+        const book = await db('book')
+            .where('id', book_id)
+            .select('title', 'author', 'description')
+            .first();
+
+        if (!book) {
+            return res.status(404).send({
+                message: "Book not found",
+            });
+        }
+
+        res.status(200).send({
+            data: book,
+            message: "Book retrieved successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
+    }
+});
+
+
 router.get("/teacher/created-groups", authenticateToken, async (req, res) => {
   const user_id = req.user.userId; // Extract user ID from JWT token payload
 
@@ -267,31 +297,46 @@ router.get("/group/:group_id/book_history", authenticateToken, async (req, res) 
     }
 });
 
-  router.get("/group/:group_id/book/:book_id/likes", authenticateToken, async (req, res) => {
+router.get("/group/:group_id/book/:book_id/likes", authenticateToken, async (req, res) => {
     const { group_id, book_id } = req.params;
   
     try {
-      // Fetch users who liked the specified book in the specified group
-      const likedBooks = await db('user_book')
-        .where({
-          group_id: group_id,
-          book_id: book_id,
-          liked: true
-        })
-        .select('user_id', 'book_id', 'group_id', 'liked');
-  
-      res.status(200).send({
-        data: likedBooks,
-        message: "Users who liked the book retrieved successfully",
-      });
+        // Fetch users who liked the specified book in the specified group
+        const likedBooks = await db('user_book')
+            .where({
+                group_id: group_id,
+                book_id: book_id,
+                liked: true
+            })
+            .select('user_id');
+
+        if (!likedBooks.length) {
+            return res.status(200).send({
+                data: [],
+                message: "No users found who liked the book in this group",
+            });
+        }
+
+        const userIds = likedBooks.map(like => like.user_id);
+
+        // Fetch user details including rank
+        const users = await db('user')
+            .leftJoin('rank', 'user.rank', 'rank.id')
+            .whereIn('user.id', userIds)
+            .select('user.id', 'user.username', 'user.email', 'user.profile_picture', 'rank.rank');
+
+        res.status(200).send({
+            data: users,
+            message: "Users who liked the book retrieved successfully",
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).send({
-        error: "Something went wrong",
-        value: error,
-      });
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
     }
-  });
+});
 
   router.get("/group/:group_id/book/:book_id/read", authenticateToken, async (req, res) => {
     const { group_id, book_id } = req.params;
@@ -347,58 +392,60 @@ router.get("/group/:group_id/book_history", authenticateToken, async (req, res) 
     const userId = req.user.userId; // Extract user ID from JWT token payload
   
     try {
-      // Fetch all comments for the specified book and group
-      const comments = await db('book_comments')
-        .where({
-          group_id: group_id,
-          book_id: book_id
-        })
-        .select('user_id', 'group_id', 'book_id', 'comment', 'created_at');
+        // Fetch all comments for the specified book and group, ordered by created_at in descending order
+        const comments = await db('book_comments')
+            .where({
+                group_id: group_id,
+                book_id: book_id
+            })
+            .orderBy('created_at', 'desc') // Order by created_at in descending order
+            .select('user_id', 'group_id', 'book_id', 'comment', 'created_at', 'image');
   
-      // Fetch user data including their ranks
-      const userIds = comments.map(comment => comment.user_id);
-      const users = await db('user')
-        .whereIn('id', userIds)
-        .select('id', 'username', 'email', 'profile_picture', 'rank');
+        // Fetch user data including their ranks
+        const userIds = comments.map(comment => comment.user_id);
+        const users = await db('user')
+            .whereIn('id', userIds)
+            .select('id', 'username', 'email', 'profile_picture', 'rank');
   
-      const userRanks = await db('rank')
-        .whereIn('id', users.map(user => user.rank))
-        .select('id', 'rank');
+        const userRanks = await db('rank')
+            .whereIn('id', users.map(user => user.rank))
+            .select('id', 'rank');
   
-      // Create a map for user rank
-      const userRankMap = {};
-      userRanks.forEach(rank => {
-        userRankMap[rank.id] = rank.rank;
-      });
+        // Create a map for user rank
+        const userRankMap = {};
+        userRanks.forEach(rank => {
+            userRankMap[rank.id] = rank.rank;
+        });
   
-      // Map through comments and format the created_at information, including rank
-      const commentsWithFormattedDate = comments.map(comment => {
-        const user = users.find(u => u.id === comment.user_id);
-        const createdAt = moment(comment.created_at);
-        return {
-          ...comment,
-          username: user ? user.username : null,
-          email: user ? user.email : null,
-          profile_picture: user ? user.profile_picture : null,
-          rank: user ? userRankMap[user.rank] : null,
-          you: comment.user_id === userId,
-          time: createdAt.format('HH:mm'),
-          date: createdAt.format('ddd DD MMM YYYY')
-        };
-      });
+        // Map through comments and format the created_at information, including rank
+        const commentsWithFormattedDate = comments.map(comment => {
+            const user = users.find(u => u.id === comment.user_id);
+            const createdAt = moment(comment.created_at);
+            return {
+                ...comment,
+                username: user ? user.username : null,
+                email: user ? user.email : null,
+                profile_picture: user ? user.profile_picture : null,
+                rank: user ? userRankMap[user.rank] : null,
+                you: comment.user_id === userId,
+                time: createdAt.format('HH:mm'),
+                date: createdAt.format('ddd DD MMM YYYY')
+            };
+        });
   
-      res.status(200).send({
-        data: commentsWithFormattedDate,
-        message: "Comments retrieved successfully",
-      });
+        res.status(200).send({
+            data: commentsWithFormattedDate,
+            message: "Comments retrieved successfully",
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).send({
-        error: "Something went wrong",
-        value: error,
-      });
+        console.error(error);
+        res.status(500).send({
+            error: "Something went wrong",
+            value: error,
+        });
     }
-  });
+});
+
 
   router.get("/question/:question_id", authenticateToken, async (req, res) => {
     const { question_id } = req.params;
@@ -467,6 +514,7 @@ router.get("/group/:group_id/book_history", authenticateToken, async (req, res) 
     }
 });
 
+// Route to get the last vote for a group and check if it is completed
 router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => {
     const { group_id } = req.params;
 
@@ -487,7 +535,8 @@ router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => 
         const isCompleted = lastVote.ended;
 
         res.status(200).send({
-            isCompleted: isCompleted, // Inverting the value to match your requirement
+            vote_id: lastVote.id,  // Include the vote ID in the response
+            isCompleted: isCompleted ? true : false, // Return the completed status directly
         });
     } catch (error) {
         console.error(error);
@@ -497,6 +546,7 @@ router.get("/group/:group_id/last-vote", authenticateToken, async (req, res) => 
         });
     }
 });
+
 
 router.get("/group/:group_id/ongoing-vote", authenticateToken, async (req, res) => {
   const { group_id } = req.params;
