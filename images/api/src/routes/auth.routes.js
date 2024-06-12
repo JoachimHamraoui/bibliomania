@@ -106,7 +106,7 @@ function authenticateToken(req, res, next) {
       // Fetch all users and their ranks from the database
       const users = await db("user")
         .join("rank", "user.rank", "=", "rank.id")
-        .select("user.id", "user.username", "user.email", "user.profile_picture", "rank.rank", "user.role", "user.level");
+        .select("user.id", "user.username", "user.email", "user.profile_picture", "user.bio", "rank.rank", "user.role", "user.level");
   
       // Find the data for the authenticated user
       const authenticatedUser = users.find(user => user.id === userId);
