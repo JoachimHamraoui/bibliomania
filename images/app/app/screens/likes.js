@@ -10,15 +10,15 @@ import {
 import { router } from "expo-router";
 import {EXPO_IP_ADDR} from "@env";
 
-const Users = ({groupId, token}) => {
+const Likes = ({groupId, bookId, token}) => {
   const [users, setUsers] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchGroupUsers = async () => {
+  const fetchGroupLikes = async () => {
     try {
       const response = await fetch(
-        `${EXPO_IP_ADDR}/group/${groupId}/users`,
+        `${EXPO_IP_ADDR}/group/${groupId}/book/${bookId}/likes`,
         {
           method: "GET",
           headers: {
@@ -44,8 +44,8 @@ const Users = ({groupId, token}) => {
   };
 
   useEffect(() => {
-    fetchGroupUsers();
-  }, [groupId, token]);
+    fetchGroupLikes();
+  }, [groupId, bookId,token]);
 
   if (loading) {
     return (
@@ -65,7 +65,7 @@ const Users = ({groupId, token}) => {
 
   return (
     <View style={styles.container}>
-      {users.map((user) => (
+      {users.map((user, index) => (
         <TouchableOpacity key={user.id} onPress={() => router.push(`/user/${user.id}`)} style={styles.userContainer}>
           <View style={styles.imageContainer}>
             <Image source={{ uri: user.profile_picture }} style={styles.image} />
@@ -141,4 +141,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Users;
+export default Likes;

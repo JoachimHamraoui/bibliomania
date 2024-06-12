@@ -3,6 +3,7 @@ import { View, TextInput, Text, Alert, StyleSheet, ImageBackground, ScrollView, 
 import { Picker } from '@react-native-picker/picker';
 import { Link } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
+import {EXPO_IP_ADDR} from "@env";
 
 const RegistrationForm = () => {
   const [username, setUsername] = useState('');
@@ -54,7 +55,7 @@ const RegistrationForm = () => {
 
       console.log('User Data:', userData);
 
-      const response = await fetch('http://192.168.1.10:3000/user', {
+      const response = await fetch(`${EXPO_IP_ADDR}/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,6 +202,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF9F6',
     fontSize: 18,
     fontFamily: 'Montserrat_400Regular',
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.45,
+    shadowRadius: 2,
+    elevation: 5,
   },
   pickerContainer: {
     width: '100%',
@@ -225,6 +234,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.45,
+    shadowRadius: 2,
+    elevation: 5,
   },
   formTitle: {
     color: '#FAF9F6',

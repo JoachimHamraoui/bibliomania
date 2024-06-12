@@ -7,16 +7,23 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import Svg, { Path } from "react-native-svg"; // Import SVG components
+import { EXPO_IP_ADDR } from "@env";
+import { getToken, fetchAuthenticatedUser } from '../../components/authService';
+import { router } from 'expo-router';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const Books = ({ groupId, token }) => {
-  const [books, setBooks] = useState(null);
+  const [books, setBooks] = useState([]); // Initialize with an empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
 
-  const fetchGroupHistory = async () => {
+  const fetchGroupBooks = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.10:3000/group/${groupId}/books`,
+        `${EXPO_IP_ADDR}/group/${groupId}/remaining-books`,
         {
           method: "GET",
           headers: {
@@ -27,14 +34,14 @@ const Books = ({ groupId, token }) => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch group history info");
+        throw new Error("Failed to fetch remaining books");
       }
 
       const result = await response.json();
-      setBooks(result.data);
-      console.log("Group Info:", result.data);
+      setBooks(result.remainingBooks || []); // Correctly access and set the remainingBooks field
+      console.log("Remaining Books:", result.remainingBooks);
     } catch (error) {
-      console.error("Error fetching group info:", error);
+      console.error("Error fetching group books:", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -42,7 +49,20 @@ const Books = ({ groupId, token }) => {
   };
 
   useEffect(() => {
-    fetchGroupHistory();
+    const getUserData = async () => {
+      const token = await getToken();
+      if (token) {
+        const userData = await fetchAuthenticatedUser(token);
+        setUser(userData);
+        console.log(userData);
+
+        setRole(userData.role);
+      }
+    };
+
+    getUserData();
+    fetchGroupBooks();
+
   }, [groupId, token]);
 
   if (loading) {
@@ -63,7 +83,18 @@ const Books = ({ groupId, token }) => {
 
   return (
     <View style={styles.container}>
-      {books && books.length > 0 ? (
+      {role === 'teacher' && (
+        <View style={styles.teacherButtonsContainer}>
+          <TouchableOpacity
+            onPress={() => router.navigate(`/group/${groupId}/add-book`)}
+            style={styles.buttonContainer}
+          >
+            <MaterialIcons name="bookmark-add" size={24} color="white" style={styles.icon} />
+            <Text style={styles.buttonText}>Add Book</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {books.length > 0 ? (
         books.map((book, index) => (
           <View key={index} style={styles.bookHistoryContainer}>
             <View style={styles.bookCoverContainer}>
@@ -81,7 +112,7 @@ const Books = ({ groupId, token }) => {
           </View>
         ))
       ) : (
-        <Text style={styles.text}>No books in Group</Text>
+        <Text style={styles.text}>No remaining books</Text>
       )}
     </View>
   );
@@ -92,16 +123,35 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     justifyContent: "center",
-    // alignItems: 'center',
+  },
+  teacherButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    width: "100%", // Adjusted for spacing between buttons
+    alignItems: "center",
+    backgroundColor: "#2465C7",
+    borderRadius: 6,
+    padding: 12,
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.45,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  buttonText: {
+    fontSize: 14, // Smaller font size for button text
+    color: '#FAF9F6',
+    fontFamily: 'Montserrat_400Regular',
+    marginTop: 10, // Adjusted to create space between icon and text
   },
   text: {
     fontSize: 24,
-  },
-  statusText: {
-    fontSize: 12,
-    marginBottom: 10,
-    color: "#0B326C",
-    fontFamily: "Montserrat_700Bold",
   },
   bookHistoryContainer: {
     flexDirection: "row",
@@ -142,28 +192,8 @@ const styles = StyleSheet.create({
   bookAuthorName: {
     fontFamily: "Montserrat_700Bold",
   },
-  bookInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    bottom: -50,
-  },
-  bookInfoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  bookInfoIcon: {
-    fill: "#2465C7",
-  },
-  bookInfoText: {
-    fontSize: 12,
-    fontFamily: "Montserrat_500Medium",
-    color: "#0B326C",
-    marginRight: 10,
-    marginLeft: 5,
-  },
   bookDescription: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Montserrat_400Regular",
     color: "#0B326C",
     marginTop: 10,

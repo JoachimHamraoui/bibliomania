@@ -185,8 +185,8 @@ router.post("/user", async (req, res) => {
   
   // Route to add an entry to the user_book table
   router.post("/user/book", authenticateToken, async (req, res) => {
-    const { book_id, group_id } = req.body;
-    const user_id = req.user.userId; // Extract user ID from JWT token payload
+    const { book_id, group_id, user_id } = req.body;
+    // const user_id = req.user.userId; // Extract user ID from JWT token payload
   
     try {
       // Insert the entry into the user_book table
@@ -272,7 +272,7 @@ router.post("/user", async (req, res) => {
   });
 
   router.post("/book/comment", authenticateToken, async (req, res) => {
-    const { group_id, book_id, comment } = req.body;
+    const { group_id, book_id, comment, image } = req.body;
     const user_id = req.user.userId; // Extract user ID from JWT token payload
   
     try {
@@ -281,7 +281,8 @@ router.post("/user", async (req, res) => {
         user_id,
         group_id,
         book_id,
-        comment
+        comment,
+        image: image || null
       }).returning('*'); // Returning the inserted entry
   
       res.status(201).send({

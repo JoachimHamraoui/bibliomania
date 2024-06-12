@@ -16,6 +16,7 @@ exports.up = function(knex) {
         table.foreign('book_id').references('book.id');
 
         table.string("comment", 280).notNullable();
+        table.string("image", 280).nullable();
 
         table.timestamps(true, true);
       });
