@@ -115,6 +115,7 @@ const JoinGroup = () => {
     setScanned(true);
     setIsScanning(false);
     setQRCode(data);
+    fetchGroupData();
     // alert(`Bar code with type ${type} and data ${data} has been scanned!`);
   };
 

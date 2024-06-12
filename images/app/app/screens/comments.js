@@ -194,7 +194,7 @@ const Comments = ({ groupId, bookId, token, userRole }) => {
       )}
       {comments.map((comment, index) => (
         <TouchableOpacity
-          key={comment.user_id + index}
+          key={index}
           style={styles.commentContainer}
         >
           <View style={styles.topSection}>

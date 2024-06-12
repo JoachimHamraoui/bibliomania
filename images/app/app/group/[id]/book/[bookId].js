@@ -135,13 +135,13 @@ const Group = () => {
                 </View>
                 <View style={styles.tabBar}>
                   <TouchableOpacity onPress={() => setSelectedTab('Questions')} style={tabItemStyle('Questions')}>
-                    <Text style={styles.tabText}>Questions</Text>
+                    <Text style={styles.tabText}>Q&A</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setSelectedTab('Likes')} style={tabItemStyle('Likes')}>
                     <Text style={styles.tabText}>Likes</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setSelectedTab('Comments')} style={tabItemStyle('Comments')}>
-                    <Text style={styles.tabText}>Comments</Text>
+                    <Text style={styles.tabText}>Chat</Text>
                   </TouchableOpacity>
                 </View>
                 {renderScreen()}

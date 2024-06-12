@@ -27,12 +27,6 @@ const Home = () => {
     };
 
     getUserData();
-
-    const interval = setInterval(() => {
-      getUserData();
-    }, 30000); // Fetch data every minute (adjust as needed)
-
-    return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
   const fetchGroups = async (token, role) => {
