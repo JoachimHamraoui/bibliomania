@@ -22,6 +22,7 @@ export const fetchAuthenticatedUser = async (token) => {
 
     if (response.status === 200) {
       const data = await response.json();
+      console.log(data);
       return data.authenticatedUserData;
     } else {
       throw new Error('Failed to fetch user data');

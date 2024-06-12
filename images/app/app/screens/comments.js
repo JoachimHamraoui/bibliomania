@@ -237,7 +237,6 @@ const Comments = ({ groupId, bookId, token, userRole }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -372,7 +371,7 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat_500Medium",
   },
   pickImageButton: {
-    backgroundColor: "#2899E0",
+    backgroundColor: "#2465C7",
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: "center",

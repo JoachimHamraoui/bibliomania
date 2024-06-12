@@ -123,7 +123,6 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 10,
   },
   teacherButtonsContainer: {
     flexDirection: "row",
@@ -194,7 +193,7 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat_700Bold",
   },
   bookDescription: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Montserrat_400Regular",
     color: "#0B326C",
     marginTop: 10,
