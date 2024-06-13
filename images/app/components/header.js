@@ -107,9 +107,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   menuContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#2465C7',
     padding: 10,
-    borderRadius: 6,
+    borderRadius: 10,
     width: 150,
     alignItems: 'center',
   },
@@ -117,7 +117,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   menuText: {
+    fontFamily: 'Montserrat_400Regular',
     fontSize: 16,
+    color: '#FAF9F6',
   },
 });
 
