@@ -65,7 +65,7 @@ const Likes = ({groupId, bookId, token}) => {
 
   return (
     <View style={styles.container}>
-      {users.map((user, index) => (
+      {users.map((user) => (
         <TouchableOpacity key={user.id} onPress={() => router.push(`/user/${user.id}`)} style={styles.userContainer}>
           <View style={styles.imageContainer}>
             <Image source={{ uri: user.profile_picture }} style={styles.image} />
