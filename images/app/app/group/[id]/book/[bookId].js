@@ -3,8 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getToken, fetchAuthenticatedUser } from '../../../../components/authService';
 import Header from '../../../../components/header';
-import { Svg, Path } from 'react-native-svg';
-import {EXPO_IP_ADDR} from "@env";
+import { EXPO_IP_ADDR } from "@env";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
@@ -21,8 +20,9 @@ const Group = () => {
   const [token, setToken] = useState(null);
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('History');
+  const [selectedTab, setSelectedTab] = useState('Questions');
   const [book, setBook] = useState(null);
+  const [liked, setLiked] = useState(false);
 
   const fetchGroupInfo = async (token, id) => {
     try {
@@ -43,8 +43,6 @@ const Group = () => {
       console.log('Group Info:', result.data);
     } catch (error) {
       console.error('Error fetching group info:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -59,35 +57,85 @@ const Group = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch group info');
+        throw new Error('Failed to fetch book info');
       }
 
       const result = await response.json();
       setBook(result.data);
-      console.log('Group Info:', result.data);
+      console.log('Book Info:', result.data);
     } catch (error) {
-      console.error('Error fetching group info:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching book info:', error);
+    }
+  };
+
+  const checkLikedStatus = async (token, groupId, bookId) => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/group/${groupId}/book/${bookId}/likes`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch liked status');
+      }
+
+      const result = await response.json();
+      const likedByUser = result.data.some(like => like.user_id === user.id);
+      setLiked(likedByUser);
+      console.log('Liked Status:', likedByUser);
+    } catch (error) {
+      console.error('Error fetching liked status:', error);
+    }
+  };
+
+  const toggleLikeStatus = async () => {
+    try {
+      const response = await fetch(`${EXPO_IP_ADDR}/update-liked`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          group_id: id,
+          book_id: bookId,
+          liked: !liked,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update like status');
+      }
+
+      setLiked(!liked);
+      console.log('Like status updated successfully');
+    } catch (error) {
+      console.error('Error updating like status:', error);
     }
   };
 
   useEffect(() => {
     const getUserData = async () => {
+      setLoading(true);
       const token = await getToken();
       setToken(token);
       if (token) {
         const userData = await fetchAuthenticatedUser(token);
         setUser(userData);
-        console.log(userData);
+        console.log('User Data:', userData);
 
-        fetchGroupInfo(token, id);
-        fetchBookInfo(token, bookId);
+        await fetchGroupInfo(token, id);
+        await fetchBookInfo(token, bookId);
+        await checkLikedStatus(token, id, bookId);
       }
+      setLoading(false);
     };
 
     getUserData();
-  }, [id]);
+  }, [id, bookId]);
 
   const renderScreen = () => {
     switch (selectedTab) {
@@ -129,9 +177,15 @@ const Group = () => {
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
                   <Text style={styles.title}>{book.title}</Text>
-                  {/* <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
-                    <FontAwesome6 name="user-plus" size={16} color="white" style={styles.icon} />
-                  </TouchableOpacity> */}
+                  {user.role === 'student' && (
+                    <TouchableOpacity onPress={toggleLikeStatus} style={styles.likeButton}>
+                    <MaterialIcons
+                      name={liked ? "favorite" : "favorite-outline"}
+                      size={24}
+                      color={liked ? "#FAF9F6" : "#FFF"}
+                    />
+                  </TouchableOpacity>
+                  )}
                 </View>
                 <View style={styles.tabBar}>
                   <TouchableOpacity onPress={() => setSelectedTab('Questions')} style={tabItemStyle('Questions')}>
@@ -190,8 +244,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    // backgroundColor: '#2899E0',
-    width: '100%', 
+    width: '100%',
     marginBottom: 24,
   },
   tabItem: {
@@ -209,7 +262,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  inviteButton: {
+  likeButton: {
     backgroundColor: '#2465C7',
     borderRadius: 10,
     padding: 10,

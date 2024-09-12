@@ -48,7 +48,7 @@ const RegistrationForm = () => {
         email,
         password,
         role,
-        profile_picture: 'https://pbs.twimg.com/profile_images/1766781196560715776/wkw0Xiiy_400x400.jpg',
+        profile_picture: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
         level: 1,
         rank: 1,
       };

@@ -103,9 +103,11 @@ const Group = () => {
               <View style={styles.content}>
                 <View style={styles.titleContainer}>
                   <Text style={styles.title}>{group.name}</Text>
-                  <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
+                  {user.role === 'teacher' && (
+                    <TouchableOpacity onPress={() => router.navigate(`/group/${id}/invite`)} style={styles.inviteButton}>
                     <FontAwesome6 name="user-plus" size={16} color="white" style={styles.icon} />
                   </TouchableOpacity>
+                  )}
                 </View>
                 <View style={styles.tabBar}>
                   <TouchableOpacity onPress={() => setSelectedTab('History')} style={tabItemStyle('History')}>
